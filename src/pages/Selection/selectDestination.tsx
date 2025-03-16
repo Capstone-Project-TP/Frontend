@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
+import SelectionModal from '../../components/Modal/SelectionModal';
 import travelImage1 from '../../assets/images/travel_img1.jpg';
 import travelImage2 from '../../assets/images/travel_img2.jpg';
 import travelImage3 from '../../assets/images/travel_img3.jpg';
@@ -64,24 +65,31 @@ const TravelGrid = styled.div`
   padding: 20px;
   margin: 0;
   overflow-y: auto;
-  max-height: 635px; /* 최대 높이 설정 */
+  max-height: 635px;
   
   /* 스크롤바 스타일링 */
   &::-webkit-scrollbar {
     width: 8px;
+    background: transparent;
+    transition: all 0.3s ease;
   }
   
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+    background: transparent;
+    transition: all 0.3s ease;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: transparent;
     border-radius: 4px;
+    transition: all 0.3s ease;
   }
   
-  &::-webkit-scrollbar-thumb:hover {
+  &:hover::-webkit-scrollbar-thumb {
+    background: #ccc;
+  }
+  
+  &:hover::-webkit-scrollbar-thumb:hover {
     background: #aaa;
   }
 `;
@@ -225,9 +233,9 @@ const SidebarTitle = styled.strong`
   text-align: center;
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 15px;
+  padding: 10px 0;
+  margin-bottom: 2px;
   color: #333;
-
 `;
 
 // 사이드바 여행지 목록 스타일 컴포넌트
@@ -236,17 +244,40 @@ const SelectedTravelList = styled.div`
   border-top: 1px solid #eee;
 `;
 
+// 애니메이션 keyframe 정의
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const fadeOut = keyframes`
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+`;
+
 // 사이드바 여행지 아이템 스타일 컴포넌트
-const SelectedTravelItem = styled.div`
+const SelectedTravelItem = styled.div<{ isDeleting?: boolean }>`
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
+  align-items: center;
+  padding: 12px 0;
   border-bottom: 1px solid #eee;
-  
-  span {
-    font-size: 14px;
-    color: #333;
-  }
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+  animation: ${props => props.isDeleting ? fadeOut : fadeIn} 0.5s ease-out forwards;
 `;
 
 // 사이드바 여행지 아이템 삭제 버튼 스타일 컴포넌트
@@ -308,6 +339,9 @@ interface SelectedItem {
 
 const SelectDestination: React.FC = () => {
   const [userName] = useState<string>("성수립");
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [selectedTravelItem, setSelectedTravelItem] = useState<TravelItem | null>(null);
   
   const [travelItems] = useState<TravelItem[]>([
     {
@@ -366,7 +400,11 @@ const SelectDestination: React.FC = () => {
 
   // 삭제 버튼 클릭 시 실행되는 함수
   const handleRemoveItem = (id: number) => {
-    setSelectedItems(selectedItems.filter(item => item.id !== id));
+    setDeletingId(id);
+    setTimeout(() => {
+      setSelectedItems(selectedItems.filter(item => item.id !== id));
+      setDeletingId(null);
+    }, 500); // 애니메이션 시간과 동일하게 설정
   };
 
   // 저장 버튼 클릭 시 실행되는 함수
@@ -391,6 +429,26 @@ const SelectDestination: React.FC = () => {
     }
   };
 
+  // 여행 카드 클릭 시 실행되는 함수
+  const handleCardClick = (item: TravelItem) => {
+    setSelectedTravelItem(item);
+    setIsModalOpen(true);
+  };
+
+  // 모달 닫기 함수
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedTravelItem(null);
+  };
+
+  // 모달 선택 함수
+  const handleModalSelect = () => {
+    if (selectedTravelItem) {
+      handleSelectItem(selectedTravelItem.id);
+      handleModalClose();
+    }
+  };
+
   return (
     <Container>
       <Navbar userName={userName} />
@@ -405,8 +463,7 @@ const SelectDestination: React.FC = () => {
 
             <TravelGrid>
               {travelItems.map((item) => (
-                <TravelCard key={item.id}>
-                  
+                <TravelCard key={item.id} onClick={() => handleCardClick(item)}>
                   <TravelCardImage>
                     <img src={item.image} alt={item.title} />
                   </TravelCardImage>
@@ -417,9 +474,11 @@ const SelectDestination: React.FC = () => {
                   </TravelCardContent>
 
                   <CardButtonWrapper>
-                    <SelectButton onClick={() => handleSelectItem(item.id)}>선택</SelectButton>
+                    <SelectButton onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelectItem(item.id);
+                    }}>선택</SelectButton>
                   </CardButtonWrapper>
-
                 </TravelCard>
               ))}
             </TravelGrid>
@@ -436,15 +495,18 @@ const SelectDestination: React.FC = () => {
 
             <SelectedTravelList>
               {selectedItems.map((item) => (
-                <SelectedTravelItem key={item.id}>
-                  <span>{item.title}</span>
+                <SelectedTravelItem 
+                  key={item.id} 
+                  isDeleting={deletingId === item.id}
+                >
+                  {item.title}
                   <DeleteButton href="#" onClick={() => handleRemoveItem(item.id)}>삭제</DeleteButton>
                 </SelectedTravelItem>
               ))}
             </SelectedTravelList>
 
             <SaveButton onClick={handleSave}>
-              <span>{isSaving ? '저장중' : '저장하기'}</span>
+              {isSaving ? '저장중 ...' : '저장하기'}
             </SaveButton>
 
           </SelectedTravelSidebar>
@@ -453,6 +515,13 @@ const SelectDestination: React.FC = () => {
       </ContentWrapper>
 
       <Footer />
+
+      <SelectionModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        selectedTravelItem={selectedTravelItem}
+        onSelect={handleModalSelect}
+      />
     </Container>
   );
 };
