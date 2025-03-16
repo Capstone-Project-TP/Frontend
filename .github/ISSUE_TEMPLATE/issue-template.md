@@ -1,7 +1,7 @@
 ---
 name: Issue Template
 about: 이슈 템플릿
-title: ''
+title: Feature Issue Template
 labels: "\U0001F4C4 Docs"
 assignees: ssxrxbx
 
