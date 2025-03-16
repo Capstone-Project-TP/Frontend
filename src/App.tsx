@@ -8,6 +8,13 @@ import QuestionPage from './pages/Question/questionPage'
 import MyPage from './pages/Mypage/profileCorrection'
 import ScheduleMap from './pages/Schedule/scheduleMap'
 import ScheduleEdit from './pages/Schedule/schduleEdit'
+import ErrorPage from './pages/errorPage'
+import JoinAgreePage from './pages/LoginSingup/joinAgreePage'
+import JoinRegisterPage from './pages/LoginSingup/joinRegisterPage'
+import LoadingPage from './pages/loadingPage'
+import SelectionAdd from './pages/Selection/selectionAdd'
+import MyGuidePage from './pages/Mypage/myGuidePage'
+import SelectionDestination from './pages/Selection/selectDestination'
 
 function App() {
 
@@ -22,6 +29,13 @@ function App() {
         <Route path="/myPage" element={<MyPage />} />
         <Route path="/scheduleMap" element={<ScheduleMap />} />
         <Route path="/scheduleEdit" element={<ScheduleEdit />} />
+        <Route path="/joinAgree" element={<JoinAgreePage />} />
+        <Route path="/joinRegister" element={<JoinRegisterPage />} />
+        <Route path="/loading" element={<LoadingPage />} />
+        <Route path="/selectionAdd" element={<SelectionAdd />} />
+        <Route path="/myGuide" element={<MyGuidePage />} />
+        <Route path="/selectionDestination" element={<SelectionDestination />} />
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </>
   )
