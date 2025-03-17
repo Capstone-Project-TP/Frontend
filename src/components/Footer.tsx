@@ -5,6 +5,7 @@ const FooterContainer = styled.footer`
     padding: 30px 0;
     background-color: #ffffff;
     border-top: 1.5px solid #e9ecef;
+    height: 60px;
 `;
 
 const FooterMenu = styled.div`
