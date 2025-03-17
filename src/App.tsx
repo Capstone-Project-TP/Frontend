@@ -15,7 +15,7 @@ import LoadingPage from './pages/loadingPage'
 import SelectionAdd from './pages/Selection/selectionAdd'
 import MyGuidePage from './pages/Mypage/myGuidePage'
 import SelectionDestination from './pages/Selection/selectDestination'
-
+import SelectionRestaurant from './pages/Selection/selectRestaurant'
 function App() {
 
   return (
@@ -35,6 +35,7 @@ function App() {
         <Route path="/selectionAdd" element={<SelectionAdd />} />
         <Route path="/myGuide" element={<MyGuidePage />} />
         <Route path="/selectionDestination" element={<SelectionDestination />} />
+        <Route path="/selectionRestaurant" element={<SelectionRestaurant />} />
         <Route path="*" element={<ErrorPage />} />
       </Routes>
     </>
