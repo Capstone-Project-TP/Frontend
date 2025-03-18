@@ -120,7 +120,7 @@ const Navbar: React.FC<NavbarProps> = ({ userName = 'Seongsurib' }) => {
                         </MenuButton>
                     </MenuItem>
                 </MenuList>
-                <UserButton onClick={() => handleNavigation('/my_profile')}>
+                <UserButton onClick={() => handleNavigation('/myPage')}>
                     <img src={userImage} alt="user"></img>{userName}
                 </UserButton>
             </MenuWrapper>

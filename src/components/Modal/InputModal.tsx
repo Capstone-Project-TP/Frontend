@@ -30,6 +30,7 @@ const ModalContent = styled.div`
     flex-direction: column;
     height: 100%;
     align-items: center;
+    margin-top: 20px;
 `;
 
 const ModalInput = styled.input`
@@ -129,7 +130,7 @@ const InputModal: React.FC<InputModalProps> = ({
             isOpen={isOpen}
             onClose={onClose}
             title={`${label} 변경`}
-            size='medium'
+            size='small'
         >
 
             <ModalContent>

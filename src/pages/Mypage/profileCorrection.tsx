@@ -135,6 +135,7 @@ const RightSection = styled.ul`
   border-radius: 10px;
   height: 300px;
   margin-top: 0;
+  justify-content: center;
 `;
 
 // 프로필 정보 리스트
