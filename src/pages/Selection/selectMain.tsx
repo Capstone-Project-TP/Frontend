@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import Navbar from '../../components/Navbar';
 import SelectionModal from '../../components/Modal/SelectionModal';
 
 const PageContainer = styled.div`
@@ -404,7 +403,6 @@ const SelectMain: React.FC<SelectMainProps> = ({
 
     return (
     <>
-        <Navbar userName={userName} />
         <PageContainer>
             <ContentWrapper>
                 <TravelSection>
@@ -462,6 +460,7 @@ const SelectMain: React.FC<SelectMainProps> = ({
                     </SelectedTravelSidebar>
                 </TravelSection>
             </ContentWrapper>
+            
 
             <SelectionModal
             isOpen={isModalOpen}

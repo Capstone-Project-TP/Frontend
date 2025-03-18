@@ -1,440 +1,510 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { Link } from 'react-router-dom';
 import Modal from 'react-modal';
 
-const SelectionAddWrapper = styled.div`
-    #wrap {
-        min-height: 100vh;
-        display: flex;
+const MainContainer = styled.div`
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    
+    @media (max-width: 992px) {
         flex-direction: column;
-    }
-
-    #header {
-        display: flex;
-        justify-content: space-between;
         align-items: center;
-        height: 80px;
-        padding: 0 40px;
-        background: #fff;
-        border-bottom: 1px solid #ddd;
-
-        h1 img {
-            height: 40px;
-        }
-
-        #menu {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-
-            ul {
-                display: flex;
-                gap: 30px;
-
-                a {
-                    font-size: 16px;
-                    color: #333;
-                    text-decoration: none;
-                }
-            }
-
-            .user_id {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                color: #333;
-                text-decoration: none;
-
-                i {
-                    width: 32px;
-                    height: 32px;
-                    background: #ddd;
-                    border-radius: 50%;
-                }
-            }
-        }
-    }
-
-    #main {
-        flex: 1;
-        padding: 0 40px;
-
-        .inner {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        h2 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-    }
-
-    .pt40 { padding-top: 40px; }
-    .pb10 { padding-bottom: 10px; }
-
-    .add_travel__wrap {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
-    }
-
-    .searching {
-        padding: 30px;
-        background: #f5f5f5;
-        border-radius: 10px;
-
-        .select_title {
-            display: block;
-            font-size: 18px;
-            font-weight: 500;
-            margin-bottom: 20px;
-        }
-
-        .select_list {
-            li {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 15px;
-                background: #fff;
-                border-radius: 8px;
-                margin-bottom: 10px;
-
-                &:last-child {
-                    margin-bottom: 0;
-                }
-
-                span {
-                    font-size: 16px;
-                }
-            }
-        }
-
-        .btn.round_big {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 52px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 24px;
-            background: #4F46E5;
-            color: #fff;
-            text-decoration: none;
-
-            &.add {
-                background: #fff;
-                color: #4F46E5;
-                border: 2px dashed #4F46E5;
-            }
-        }
-    }
-
-    .btn.round {
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
-        text-decoration: none;
-
-        &.white {
-            background: #fff;
-            border: 1px solid #ddd;
-            color: #666;
-        }
-    }
-
-    #footer {
-        padding: 40px;
-        background: #f5f5f5;
-
-        .ft_menu {
-            margin-bottom: 20px;
-
-            ul {
-                display: flex;
-                gap: 20px;
-
-                a {
-                    color: #666;
-                    text-decoration: none;
-                }
-            }
-        }
-
-        .copy {
-            color: #999;
-            font-size: 14px;
-        }
     }
 `;
 
-const ModalWrapper = styled.div`
-    .modal {
-        &.wd410p {
-            width: 410px;
-        }
+// 검색 컨테이너 스타일 컴포넌트
+const SearchContainer = styled.div`
+    width: 280px;
+    min-height: 600px;
+    height: calc(100vh - 400px);
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    padding-right: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    
+    @media (max-width: 992px) {
+        width: 100%;
+        height: 600px;
+        margin-bottom: 20px;
     }
+`;
 
-    .modal_hdr {
-        padding: 20px;
-        border-bottom: 1px solid #ddd;
-        
-        strong {
-            font-size: 18px;
-            font-weight: 500;
-        }
+// 검색 제목 스타일 컴포넌트
+const SearchTitle = styled.strong`
+    display: block;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    color: #333;
+`;
+
+// 검색 입력 폼 스타일 컴포넌트
+const SearchForm = styled.div`
+    margin-bottom: 20px;
+`;
+
+// 검색 입력창 스타일 컴포넌트
+const SearchInput = styled.input`
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.3s;
+    box-sizing: border-box;
+    
+    &:focus {
+        border-color: #0066cc;
     }
+`;
 
-    .modal_bdy {
-        padding: 20px;
-
-        .add_travel {
-            max-height: 400px;
-            overflow-y: auto;
-
-            &.scroll {
-                padding-right: 10px;
-            }
-
-            ul li {
-                padding: 20px;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                margin-bottom: 10px;
-
-                &:last-child {
-                    margin-bottom: 0;
-                }
-
-                h3 {
-                    font-size: 18px;
-                    font-weight: 500;
-                    margin-bottom: 15px;
-                }
-
-                .d-flex {
-                    display: flex;
-                    gap: 15px;
-                    margin-bottom: 15px;
-
-                    .img {
-                        width: 100px;
-                        height: 100px;
-                        border-radius: 4px;
-                        overflow: hidden;
-
-                        img {
-                            width: 100%;
-                            height: 100%;
-                            object-fit: cover;
-                        }
-                    }
-
-                    .info {
-                        flex: 1;
-
-                        p {
-                            display: flex;
-                            gap: 10px;
-                            font-size: 14px;
-
-                            &.mb10 {
-                                margin-bottom: 10px;
-                            }
-
-                            strong {
-                                font-weight: 500;
-                                color: #666;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+// 검색 결과 컨테이너 스타일 컴포넌트 - 스크롤바 숨김
+const SearchResults = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px;
+    scrollbar-width: none; /* Firefox에서는 스크롤바 완전히 숨김 */
+    -ms-overflow-style: none; /* IE와 Edge에서 스크롤바 숨김 */
+    
+    &::-webkit-scrollbar {
+        display: none; /* Chrome, Safari에서 스크롤바 숨김 */
     }
+`;
 
-    .modal_ftr {
-        padding: 20px;
-        border-top: 1px solid #ddd;
+// 검색 결과 아이템 스타일 컴포넌트
+const SearchResultItem = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: #333;
+`;
 
-        &.d-flex {
-            display: flex;
-            gap: 10px;
+// 장소 정보 스타일 컴포넌트
+const PlaceInfo = styled.div`
+    flex: 1;
+`;
 
-            &.center {
-                justify-content: center;
-            }
-        }
+// 장소 이름 스타일 컴포넌트
+const PlaceName = styled.div`
+    font-weight: 500;
+    margin-bottom: 4px;
+`;
 
-        .btn {
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            font-size: 16px;
-            text-decoration: none;
+// 장소 주소 스타일 컴포넌트
+const PlaceAddress = styled.div`
+    font-size: 12px;
+    color: #777;
+`;
 
-            &.middle {
-                padding: 0 30px;
-            }
+// 추가 버튼 스타일 컴포넌트
+const AddButton = styled.button<{ isComplete?: boolean }>`
+    padding: 6px 12px;
+    background: ${props => props.isComplete ? '#ccc' : '#0066cc'};
+    color: #fff;
+    border: none;
+    border-radius: 15px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: ${props => props.isComplete ? 'not-allowed' : 'pointer'};
+    transition: background 0.3s;
+    margin-left: 10px;
+    
+    &:hover {
+        background: ${props => props.isComplete ? '#ccc' : '#0055aa'};
+    }
+`;
 
-            &.wd80p {
-                width: 80px;
-            }
+// 사이드바 타이틀 스타일 컴포넌트
+const SidebarTitle = styled.strong<{ isComplete?: boolean }>`
+    display: block;
+    text-align: center;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 10px 0;
+    margin-bottom: 2px;
+    color: ${props => props.isComplete ? '#555' : '#333'};
+    text-shadow: ${props => props.isComplete ? '0 1px 1px rgba(0, 0, 0, 0.2)' : 'none'};
+`;
 
-            &.bg_color2 {
-                background: #333;
-                color: #fff;
-            }
+// 사이드바 여행지 목록 스타일 컴포넌트 - 스크롤바 숨김
+const SelectedTravelList = styled.div`
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 70px; /* 버튼 높이 + 여백 */
+    border-top: 1px solid #eee;
+    padding-right: 5px;
+    scrollbar-width: none; /* Firefox에서는 스크롤바 완전히 숨김 */
+    -ms-overflow-style: none; /* IE와 Edge에서 스크롤바 숨김 */
+    
+    &::-webkit-scrollbar {
+        display: none; /* Chrome, Safari에서 스크롤바 숨김 */
+    }
+`;
 
-            &.bg_color3 {
-                background: #4F46E5;
-                color: #fff;
-            }
-        }
+// 선택된 여행지 사이드바 스타일 컴포넌트
+const SelectedTravelSidebar = styled.div<{ isComplete?: boolean }>`
+    width: 300px;
+    min-height: 600px;
+    height: calc(100vh - 300px);
+    background: ${props => props.isComplete ? '#e6e6e6' : '#fff'};
+    border-radius: 10px;
+    box-shadow: ${props => props.isComplete 
+        ? '0 2px 10px rgba(0, 0, 0, 0.5)' 
+        : '0 2px 10px rgba(0, 0, 0, 0.3)'};
+    padding: 20px;
+    padding-right: 15px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    
+    @media (max-width: 992px) {
+        width: 100%;
+        height: 600px;
+    }
+`;
+
+// 사이드바 여행지 아이템 스타일 컴포넌트
+const SelectedTravelItem = styled.div<{ isDeleting?: boolean; isComplete?: boolean }>`
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 15px;
+    color: ${props => props.isComplete ? '#555' : '#333'};
+    font-weight: 500;
+    opacity: ${props => props.isComplete ? 0.8 : 1};
+`;
+
+// 사이드바 여행지 아이템 삭제 버튼 스타일 컴포넌트
+const DeleteButton = styled.a<{ isComplete?: boolean }>`
+    display: inline-block;
+    padding: 6px 10px;
+    background: ${props => props.isComplete ? '#e0e0e0' : '#fff'};
+    color: ${props => props.isComplete ? '#aaa' : '#333'};
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s;
+    opacity: ${props => props.isComplete ? 0.6 : 1};
+    pointer-events: ${props => props.isComplete ? 'none' : 'auto'};
+    
+    &:hover {
+        background: ${props => props.isComplete ? '#e0e0e0' : '#f0f0f0'};
+    }
+`;
+
+// 완료 버튼 스타일 컴포넌트
+const CompleteButton = styled.button<{ isComplete?: boolean }>`
+    display: block;
+    width: calc(100% - 40px);
+    padding: 12px;
+    background: ${props => props.isComplete ? '#888' : '#0066cc'};
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: ${props => props.isComplete ? 'default' : 'pointer'};
+    transition: background 0.3s;
+    position: absolute;
+    left: 20px;
+    align-self: center;
+    bottom: 20px;
+    
+    &:hover {
+        background: ${props => props.isComplete ? '#888' : '#0055aa'};
+    }
+    
+    &:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+`;
+
+// 다시 선택하기 버튼 스타일 컴포넌트
+const ResetButton = styled.button`
+    display: block;
+    width: calc(100% - 40px);
+    padding: 8px;
+    background: #ff6b6b;
+    color: #fff;
+    border: none;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.3s;
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 12px 20px;
+    
+    &:hover {
+        background: #ff5252;
     }
 `;
 
 Modal.setAppElement('#root'); // 모달을 위한 설정
 
 const SelectionAdd: React.FC = () => {
-    const [modalIsOpen, setModalIsOpen] = useState(false);
     const [selectedPlaces, setSelectedPlaces] = useState({
-        travel: ['광안대교', '마린시티', '해운대 해수욕장'],
-        restaurant: ['광안대교', '마린시티', '해운대 해수욕장']
+        travel: [
+            { id: 1, title: '광안대교' },
+            { id: 2, title: '마린시티' },
+            { id: 3, title: '해운대해수욕장' },
+            { id: 4, title: '우리집' },
+            { id: 5, title: '너네집' },
+            { id: 6, title: '캡스톤 시발' },
+        ],
+        restaurant: [
+            { id: 1, title: '부산 어묵' },
+            { id: 2, title: '돼지국밥' },
+            { id: 3, title: '해운대 회센터' }
+        ]
     });
 
-    const handleDelete = (type: 'travel' | 'restaurant', place: string) => {
+    // 검색을 위한 상태 관리
+    const [travelSearchTerm, setTravelSearchTerm] = useState('');
+    const [restaurantSearchTerm, setRestaurantSearchTerm] = useState('');
+    
+    // 검색 결과를 위한 상태 관리
+    const [travelSearchResults, setTravelSearchResults] = useState([
+        { id: 101, name: '부산타워', address: '부산 중구 용두산길 37-55' },
+        { id: 102, name: '해동용궁사', address: '부산 기장군 기장읍 기장해안로 86' },
+        { id: 103, name: '태종대', address: '부산 영도구 전망로 24' },
+        { id: 104, name: '감천문화마을', address: '부산 사하구 감내2로 203' },
+        { id: 105, name: '오륙도', address: '부산 남구 오륙도로 137' }
+    ]);
+    
+    const [restaurantSearchResults, setRestaurantSearchResults] = useState([
+        { id: 201, name: '자갈치 시장', address: '부산 중구 자갈치해안로 52' },
+        { id: 202, name: '가야밀면', address: '부산 진구 가야대로 507' },
+        { id: 203, name: '삼진어묵', address: '부산 남구 분포로 66' },
+        { id: 204, name: '송정 가마솥 국밥', address: '부산 해운대구 송정구서로 21' },
+        { id: 205, name: '원조할매국밥', address: '부산 동구 중앙대로 526' }
+    ]);
+
+    // 선택 완료 상태 관리
+    const [isTravelComplete, setIsTravelComplete] = useState(false);
+    const [isRestaurantComplete, setIsRestaurantComplete] = useState(false);
+
+    // 선택 완료 핸들러
+    const handleTravelComplete = () => {
+        setIsTravelComplete(true);
+    };
+
+    const handleRestaurantComplete = () => {
+        setIsRestaurantComplete(true);
+    };
+
+    // 다시 선택하기 핸들러
+    const handleResetTravel = () => {
+        setIsTravelComplete(false);
+    };
+
+    const handleResetRestaurant = () => {
+        setIsRestaurantComplete(false);
+    };
+
+    const handleDelete = (type: 'travel' | 'restaurant', id: number) => {
         setSelectedPlaces(prev => ({
             ...prev,
-            [type]: prev[type].filter(item => item !== place)
+            [type]: prev[type].filter(item => item.id !== id)
         }));
     };
 
-    const openModal = () => {
-        setModalIsOpen(true);
+    // 검색어 변경 핸들러
+    const handleTravelSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setTravelSearchTerm(e.target.value);
+        // 실제 구현에서는 여기서 API 호출이나 필터링 로직을 추가
     };
 
-    const closeModal = () => {
-        setModalIsOpen(false);
+    const handleRestaurantSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setRestaurantSearchTerm(e.target.value);
+        // 실제 구현에서는 여기서 API 호출이나 필터링 로직을 추가
+    };
+
+    // 장소 추가 핸들러
+    const handleAddTravel = (place: { id: number, name: string }) => {
+        if (isTravelComplete) return; // 선택 완료 상태면 추가하지 않음
+        // 중복 체크
+        if (!selectedPlaces.travel.some(item => item.id === place.id)) {
+            setSelectedPlaces(prev => ({
+                ...prev,
+                travel: [...prev.travel, { id: place.id, title: place.name }]
+            }));
+        }
+    };
+
+    const handleAddRestaurant = (place: { id: number, name: string }) => {
+        if (isRestaurantComplete) return; // 선택 완료 상태면 추가하지 않음
+        // 중복 체크
+        if (!selectedPlaces.restaurant.some(item => item.id === place.id)) {
+            setSelectedPlaces(prev => ({
+                ...prev,
+                restaurant: [...prev.restaurant, { id: place.id, title: place.name }]
+            }));
+        }
     };
 
     return (
-        <SelectionAddWrapper>
-            <div id="wrap">
-                <header id="header">
-                    <h1><Link to="/"><img src="/images/t_logo.png" alt="logo" /></Link></h1>
-                    <nav id="menu">
-                        <ul>
-                            <li><Link to="/selection">여행지 선택</Link></li>
-                            <li><Link to="/scheduleMap">일정 확인</Link></li>
-                            <li><Link to="/question">문의하기</Link></li>
-                        </ul>
-                        <Link to="/myPage" className="user_id"><i></i>Sooyeony</Link>
-                    </nav>
-                </header>
+        <>
+            <MainContainer>
+                {/* 여행지 검색 컨테이너 */}
+                <SearchContainer>
+                    <SearchTitle>여행지 검색</SearchTitle>
+                    <SearchForm>
+                        <SearchInput 
+                            type="text" 
+                            placeholder="여행지를 검색하세요" 
+                            value={travelSearchTerm}
+                            onChange={handleTravelSearchChange}
+                        />
+                    </SearchForm>
+                    <SearchResults>
+                        {travelSearchResults.map(place => (
+                            <SearchResultItem key={place.id}>
+                                <PlaceInfo>
+                                    <PlaceName>{place.name}</PlaceName>
+                                    <PlaceAddress>{place.address}</PlaceAddress>
+                                </PlaceInfo>
+                                <AddButton onClick={() => handleAddTravel(place)} isComplete={isTravelComplete}>추가</AddButton>
+                            </SearchResultItem>
+                        ))}
+                    </SearchResults>
+                </SearchContainer>
 
-                <main id="main">
-                    <div className="inner">
-                        <h2 className="pt40 pb10">추가하실 여행지 및 음식점이 있으면 추가해주세요!</h2>
-                        <div className="add_travel__wrap">
-                            <div className="searching">
-                                <strong className="select_title">김수연님이 선택한 여행지입니다.</strong>
-                                <ul className="select_list">
-                                    {selectedPlaces.travel.map((place, index) => (
-                                        <li key={`travel-${index}`}>
-                                            <span>{place}</span>
-                                            <button 
-                                                className="btn round white"
-                                                onClick={() => handleDelete('travel', place)}
-                                            >
-                                                삭제
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <button onClick={openModal} className="btn round_big add">+</button>
-                            </div>
-                            <div className="searching">
-                                <strong className="select_title">김수연님이 선택한 음식점입니다.</strong>
-                                <ul className="select_list">
-                                    {selectedPlaces.restaurant.map((place, index) => (
-                                        <li key={`restaurant-${index}`}>
-                                            <span>{place}</span>
-                                            <button 
-                                                className="btn round white"
-                                                onClick={() => handleDelete('restaurant', place)}
-                                            >
-                                                삭제
-                                            </button>
-                                        </li>
-                                    ))}
-                                </ul>
-                                <button onClick={openModal} className="btn round_big add">+</button>
-                            </div>
-                        </div>
-                    </div>
-                </main>
+                {/* 선택한 여행지 사이드바 */}
+                <SelectedTravelSidebar 
+                    className="travel_spot" 
+                    isComplete={isTravelComplete}
+                >
+                    <SidebarTitle isComplete={isTravelComplete}>
+                        성수립님이 선택한 여행지입니다.
+                    </SidebarTitle>
 
-                <footer id="footer">
-                    <div className="ft_menu">
-                        <ul>
-                            <li><Link to="/privacy">개인정보보호방침</Link></li>
-                            <li><Link to="/customer-service">고객센터</Link></li>
-                        </ul>
-                    </div>
-                    <p className="copy">Copyright 2025. Capstone All rights reserved.</p>
-                </footer>
-            </div>
+                    <SelectedTravelList>
+                        {selectedPlaces.travel.map((item) => (
+                            <SelectedTravelItem 
+                                key={`travel-${item.id}`} 
+                                isDeleting={false}
+                                isComplete={isTravelComplete}
+                            >
+                                {item.title}
+                                <DeleteButton 
+                                    href="#" 
+                                    onClick={() => handleDelete('travel', item.id)}
+                                    isComplete={isTravelComplete}
+                                >
+                                    삭제
+                                </DeleteButton>
+                            </SelectedTravelItem>
+                        ))}
+                    </SelectedTravelList>
 
-            <Modal
-                isOpen={modalIsOpen}
-                onRequestClose={closeModal}
-                className="modal wd410p"
-                overlayClassName="modal-overlay"
-            >
-                <ModalWrapper>
-                    <div className="modal_hdr">
-                        <strong>추가하실 여행지를 입력해주세요</strong>
-                    </div>
-                    <div className="modal_bdy">
-                        <div className="add_travel scroll">
-                            <ul>
-                                {Array(6).fill(null).map((_, index) => (
-                                    <li key={index}>
-                                        <h3>해동용궁사</h3>
-                                        <div className="d-flex">
-                                            <span className="img">
-                                                <img src="/images/travel_img2.jpg" alt="" />
-                                            </span>
-                                            <div className="info">
-                                                <p className="mb10">
-                                                    <strong>위치</strong>
-                                                    <span>부산 기장군 기장읍</span>
-                                                </p>
-                                                <p>
-                                                    <strong>운영시간</strong>
-                                                    <span>연중무휴</span>
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button className="btn round white">선택</button>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                    <div className="modal_ftr d-flex center">
-                        <button onClick={closeModal} className="btn bg_color3 middle wd80p">예</button>
-                        <button onClick={closeModal} className="btn bg_color2 middle wd80p">아니오</button>
-                    </div>
-                </ModalWrapper>
-            </Modal>
-        </SelectionAddWrapper>
+                    {isTravelComplete && (
+                        <ResetButton onClick={handleResetTravel}>
+                            다시 선택하기
+                        </ResetButton>
+                    )}
+
+                    <CompleteButton 
+                        onClick={handleTravelComplete}
+                        disabled={isTravelComplete}
+                        isComplete={isTravelComplete}
+                    >
+                        {isTravelComplete ? '선택 완료됨' : '여행지 선택 완료'}
+                    </CompleteButton>
+                </SelectedTravelSidebar>
+                
+                {/* <AddModal isOpen={true} onClose={() => {}} onAdd={() => {}} /> */}
+
+                {/* 선택한 음식점 사이드바 */}
+                <SelectedTravelSidebar 
+                    className="restaurant_spot" 
+                    isComplete={isRestaurantComplete}
+                >
+                    <SidebarTitle isComplete={isRestaurantComplete}>
+                        성수립님이 선택한 음식점입니다.
+                    </SidebarTitle>
+
+                    <SelectedTravelList>
+                        {selectedPlaces.restaurant.map((item) => (
+                            <SelectedTravelItem 
+                                key={`restaurant-${item.id}`} 
+                                isDeleting={false}
+                                isComplete={isRestaurantComplete}
+                            >
+                                {item.title}
+                                <DeleteButton 
+                                    href="#" 
+                                    onClick={() => handleDelete('restaurant', item.id)}
+                                    isComplete={isRestaurantComplete}
+                                >
+                                    삭제
+                                </DeleteButton>
+                            </SelectedTravelItem>
+                        ))}
+                    </SelectedTravelList>
+
+                    {isRestaurantComplete && (
+                        <ResetButton onClick={handleResetRestaurant}>
+                            다시 선택하기
+                        </ResetButton>
+                    )}
+
+                    <CompleteButton 
+                        onClick={handleRestaurantComplete}
+                        disabled={isRestaurantComplete}
+                        isComplete={isRestaurantComplete}
+                    >
+                        {isRestaurantComplete ? '선택 완료됨' : '음식점 선택 완료'}
+                    </CompleteButton>
+                </SelectedTravelSidebar>
+
+                {/* 음식점 검색 컨테이너 */}
+                <SearchContainer>
+                    <SearchTitle>음식점 검색</SearchTitle>
+                    <SearchForm>
+                        <SearchInput 
+                            type="text" 
+                            placeholder="음식점을 검색하세요" 
+                            value={restaurantSearchTerm}
+                            onChange={handleRestaurantSearchChange}
+                        />
+                    </SearchForm>
+                    <SearchResults>
+                        {restaurantSearchResults.map(place => (
+                            <SearchResultItem key={place.id}>
+                                <PlaceInfo>
+                                    <PlaceName>{place.name}</PlaceName>
+                                    <PlaceAddress>{place.address}</PlaceAddress>
+                                </PlaceInfo>
+                                <AddButton onClick={() => handleAddRestaurant(place)} isComplete={isRestaurantComplete}>추가</AddButton>
+                            </SearchResultItem>
+                        ))}
+                    </SearchResults>
+                </SearchContainer>
+            </MainContainer>
+        </>
     );
 };
 

@@ -34,20 +34,19 @@ const ModalContent = styled.div<{ size?:'small' | 'medium' | 'large' }>`
         switch (props.size) {
             case 'small':
                 return `
-                    width: 400px;
+                    width: 300px;
                     max-width: 90%;
                 `;
             case 'medium':
                 return `
-                    width: 600px;
+                    width: 450px;
                     max-width: 90%;
                 `;
             case 'large':
                 return `
-                    width: 800px;
+                    width: 600px;
                     max-width: 90%;
                 `;
-            
         }
     }}
 `;
