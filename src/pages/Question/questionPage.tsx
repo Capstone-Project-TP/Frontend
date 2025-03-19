@@ -2,11 +2,20 @@ import React, {useEffect, useState} from 'react';
 import flatpickr from 'flatpickr';
 import { Korean } from 'flatpickr/dist/l10n/ko';
 import 'flatpickr/dist/flatpickr.min.css';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 import profileImg from "../../assets/images/profile_img.png";
 import icoNext from "../../assets/images/ico_cal_next.png";
+
+const GlobalStyle = createGlobalStyle`
+    html, body {
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+    }
+`;
 
 const Wrapper = styled.div`
     width: 100%;
@@ -14,6 +23,7 @@ const Wrapper = styled.div`
     display: flex;
     flex-direction: column;
     position: fixed;
+    top: 60px;
     left: 0;
     right: 0;
     overflow: hidden;
@@ -624,7 +634,7 @@ const LoadingContainer = styled.div`
     z-index: 1000;
 `;
 
-const SearchingSection = styled.div`
+const ResponseSection = styled.div`
     flex: 1.2;
     border: 1px solid #eee;
     border-radius: 12px;
@@ -634,26 +644,13 @@ const SearchingSection = styled.div`
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     position: relative;
 
-    &.loading {
-        &::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 12px;
-        }
-    }
-
     @media (max-width: 768px) {
         flex: 1;
         height: 40vh;
     }
 `;
 
-const DestinationList = styled.ul`
+const ResponseList = styled.ul`
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -683,7 +680,7 @@ const DestinationList = styled.ul`
     }
 `;
 
-const InputField = styled.div`
+const ResponseField = styled.div`
     background: #f8f9fa;
     border-radius: 12px;
     padding: 12px 16px;
@@ -709,12 +706,12 @@ const InputField = styled.div`
     }
 `;
 
-const DateRange = styled.div`
+const DateRangeField = styled.div`
     display: flex;
     flex-direction: column;
     gap: 8px;
 
-    ${InputField} {
+    ${ResponseField} {
         position: relative;
         padding-left: 48px;
 
@@ -1107,134 +1104,137 @@ const QuestionPage: React.FC = () => {
     };
 
     return (
-        <Wrapper>
-            {isComplete && (
-                <LoadingContainer>
-                    <LoadingSpinner />
-                </LoadingContainer>
-            )}
-            <GuideWrap>
-                <ChatSection>
-                    <MessagesChat>
-                        {defaultQuestions.map((msg, index) => (
-                            <Message key={index}>
-                                <Photo style={{ visibility: shouldShowPhoto(defaultQuestions, index) ? 'visible' : 'hidden' }}>
-                                    <img src={profileImg} alt="" />
-                                </Photo>
-                                <ChatText>
-                                    <MessageWrapper>
-                                        <Text>
-                                            <p>{msg.content}</p>
-                                        </Text>
-                                        <Time>{msg.timestamp}</Time>
-                                    </MessageWrapper>
-                                </ChatText>
-                            </Message>
-                        ))}
-                        {chatHistory.map((msg, index) => (
-                            <Message key={index} className={msg.isResponse ? "response" : ""}>
-                                <Photo className={msg.isResponse ? "response" : ""} style={{ visibility: shouldShowPhoto(chatHistory, index) ? 'visible' : 'hidden' }}>
-                                    <img src={profileImg} alt="" />
-                                </Photo>
-                                <ChatText className={msg.isResponse ? "response" : ""}>
-                                    <MessageWrapper className={msg.isResponse ? "response" : ""}>
-                                        {msg.content === "calendar" ? (
-                                            <Text className="calendar">
-                                                <div className="calendar-message" />
-                                            </Text>
-                                        ) : (
-                                            <Text className={msg.isResponse ? "response" : ""}>
+        <>
+            <GlobalStyle />
+            <Wrapper>
+                {isComplete && (
+                    <LoadingContainer>
+                        <LoadingSpinner />
+                    </LoadingContainer>
+                )}
+                <GuideWrap>
+                    <ChatSection>
+                        <MessagesChat>
+                            {defaultQuestions.map((msg, index) => (
+                                <Message key={index}>
+                                    <Photo style={{ visibility: shouldShowPhoto(defaultQuestions, index) ? 'visible' : 'hidden' }}>
+                                        <img src={profileImg} alt="" />
+                                    </Photo>
+                                    <ChatText>
+                                        <MessageWrapper>
+                                            <Text>
                                                 <p>{msg.content}</p>
                                             </Text>
-                                        )}
-                                        <Time>{msg.timestamp}</Time>
-                                    </MessageWrapper>
-                                </ChatText>
-                            </Message>
-                        ))}
-                        <div ref={messageEndRef} />
-                    </MessagesChat>
+                                            <Time>{msg.timestamp}</Time>
+                                        </MessageWrapper>
+                                    </ChatText>
+                                </Message>
+                            ))}
+                            {chatHistory.map((msg, index) => (
+                                <Message key={index} className={msg.isResponse ? "response" : ""}>
+                                    <Photo className={msg.isResponse ? "response" : ""} style={{ visibility: shouldShowPhoto(chatHistory, index) ? 'visible' : 'hidden' }}>
+                                        <img src={profileImg} alt="" />
+                                    </Photo>
+                                    <ChatText className={msg.isResponse ? "response" : ""}>
+                                        <MessageWrapper className={msg.isResponse ? "response" : ""}>
+                                            {msg.content === "calendar" ? (
+                                                <Text className="calendar">
+                                                    <div className="calendar-message" />
+                                                </Text>
+                                            ) : (
+                                                <Text className={msg.isResponse ? "response" : ""}>
+                                                    <p>{msg.content}</p>
+                                                </Text>
+                                            )}
+                                            <Time>{msg.timestamp}</Time>
+                                        </MessageWrapper>
+                                    </ChatText>
+                                </Message>
+                            ))}
+                            <div ref={messageEndRef} />
+                        </MessagesChat>
 
-                    <FooterChat>
-                        <ChatInputWrapper>
-                            <InputArea>
-                                <SendForm
-                                    ref={inputRef}
-                                    type="text"
-                                    value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" && !e.shiftKey && !isQuestionInProgress && !isComplete) {
-                                            e.preventDefault();
-                                            if (!inputValue.trim()) return;
-                                            handleSendMessage();
-                                        }
-                                    }}
-                                    disabled={isQuestionInProgress || isComplete}
-                                    placeholder={
-                                        isComplete ? '질문이 완료되었습니다.' :
-                                        isQuestionInProgress ? '질문이 진행 중입니다...' : 
-                                        '메시지 입력...'
-                                    }/>
-                            </InputArea>
-                            <ToolsArea>
-                                
-                                <Button 
-                                    onClick={handleSendMessage} 
-                                    disabled={isQuestionInProgress || isComplete}>
-                                    <BlindText>입력</BlindText>
-                                </Button>
-                            </ToolsArea>
-                        </ChatInputWrapper>
-                    </FooterChat>
-                </ChatSection>
-                <SearchingSection>
-                    <DestinationList>
-                        <li className={visibleSections.includes("destination") ? "visible" : ""}>
-                            <strong>여행지</strong>
-                            <InputField className={!userAnswers.destination ? "empty" : ""}>
-                                <p>{userAnswers.destination || "아직 입력되지 않았습니다."}</p>
-                            </InputField>
-                        </li>
-                        <li className={visibleSections.includes("dateRange") ? "visible" : ""}>
-                            <strong>여행 기간</strong>
-                            <DateRange>
-                                <InputField className={!userAnswers.dateRange.start ? "empty" : ""}>
-                                    <p>{userAnswers.dateRange.start || "시작일을 선택해주세요."}</p>
-                                </InputField>
-                                <InputField className={!userAnswers.dateRange.end ? "empty" : ""}>
-                                    <p>{userAnswers.dateRange.end || "종료일을 선택해주세요."}</p>
-                                </InputField>
-                            </DateRange>
-                        </li>
-                        <li className={visibleSections.includes("activities") ? "visible" : ""}>
-                            <strong>선호 활동</strong>
-                            <InputField className={!userAnswers.activities ? "empty" : ""}>
-                                <p>{userAnswers.activities || "아직 입력되지 않았습니다."}</p>
-                            </InputField>
-                        </li>
-                        <li className={visibleSections.includes("foodPreferences") ? "visible" : ""}>
-                            <strong>선호하는 음식</strong>
-                            <InputField className={!userAnswers.foodPreferences ? "empty" : ""}>
-                                <p>{userAnswers.foodPreferences || "아직 입력되지 않았습니다."}</p>
-                            </InputField>
-                        </li>
-                        <li className={visibleSections.includes("foodRestrictions") ? "visible" : ""}>
-                            <strong>못 먹는 음식</strong>
-                            <InputField className={!userAnswers.foodRestrictions ? "empty" : ""}>
-                                <p>{userAnswers.foodRestrictions || "아직 입력되지 않았습니다."}</p>
-                            </InputField>
-                        </li>
-                        <li className={visibleSections.includes("additionalRequests") ? "visible" : ""}>
-                            <strong>추가 요청사항</strong>
-                            <InputField className={!userAnswers.additionalRequests ? "empty" : ""}>
-                                <p>{userAnswers.additionalRequests || "아직 입력되지 않았습니다."}</p>
-                            </InputField>
-                        </li>
-                    </DestinationList>
-                </SearchingSection>
-            </GuideWrap>
-        </Wrapper>
+                        <FooterChat>
+                            <ChatInputWrapper>
+                                <InputArea>
+                                    <SendForm
+                                        ref={inputRef}
+                                        type="text"
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" && !e.shiftKey && !isQuestionInProgress && !isComplete) {
+                                                e.preventDefault();
+                                                if (!inputValue.trim()) return;
+                                                handleSendMessage();
+                                            }
+                                        }}
+                                        disabled={isQuestionInProgress || isComplete}
+                                        placeholder={
+                                            isComplete ? '질문이 완료되었습니다.' :
+                                            isQuestionInProgress ? '질문이 진행 중입니다...' : 
+                                            '메시지 입력...'
+                                        }/>
+                                </InputArea>
+                                <ToolsArea>
+                                    
+                                    <Button 
+                                        onClick={handleSendMessage} 
+                                        disabled={isQuestionInProgress || isComplete}>
+                                        <BlindText>입력</BlindText>
+                                    </Button>
+                                </ToolsArea>
+                            </ChatInputWrapper>
+                        </FooterChat>
+                    </ChatSection>
+                    <ResponseSection>
+                        <ResponseList>
+                            <li className={visibleSections.includes("destination") ? "visible" : ""}>
+                                <strong>여행지</strong>
+                                <ResponseField className={!userAnswers.destination ? "empty" : ""}>
+                                    <p>{userAnswers.destination || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                            <li className={visibleSections.includes("dateRange") ? "visible" : ""}>
+                                <strong>여행 기간</strong>
+                                <DateRangeField>
+                                    <ResponseField className={!userAnswers.dateRange.start ? "empty" : ""}>
+                                        <p>{userAnswers.dateRange.start || "시작일을 선택해주세요."}</p>
+                                    </ResponseField>
+                                    <ResponseField className={!userAnswers.dateRange.end ? "empty" : ""}>
+                                        <p>{userAnswers.dateRange.end || "종료일을 선택해주세요."}</p>
+                                    </ResponseField>
+                                </DateRangeField>
+                            </li>
+                            <li className={visibleSections.includes("activities") ? "visible" : ""}>
+                                <strong>선호 활동</strong>
+                                <ResponseField className={!userAnswers.activities ? "empty" : ""}>
+                                    <p>{userAnswers.activities || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                            <li className={visibleSections.includes("foodPreferences") ? "visible" : ""}>
+                                <strong>선호하는 음식</strong>
+                                <ResponseField className={!userAnswers.foodPreferences ? "empty" : ""}>
+                                    <p>{userAnswers.foodPreferences || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                            <li className={visibleSections.includes("foodRestrictions") ? "visible" : ""}>
+                                <strong>못 먹는 음식</strong>
+                                <ResponseField className={!userAnswers.foodRestrictions ? "empty" : ""}>
+                                    <p>{userAnswers.foodRestrictions || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                            <li className={visibleSections.includes("additionalRequests") ? "visible" : ""}>
+                                <strong>추가 요청사항</strong>
+                                <ResponseField className={!userAnswers.additionalRequests ? "empty" : ""}>
+                                    <p>{userAnswers.additionalRequests || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                        </ResponseList>
+                    </ResponseSection>
+                </GuideWrap>
+            </Wrapper>
+        </>
     );
 };
 
