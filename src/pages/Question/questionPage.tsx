@@ -1,54 +1,127 @@
-import React, { useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import flatpickr from 'flatpickr';
 import { Korean } from 'flatpickr/dist/l10n/ko';
 import 'flatpickr/dist/flatpickr.min.css';
-import styled from 'styled-components';
+import styled, { createGlobalStyle } from 'styled-components';
+import LoadingSpinner from '../../components/LoadingSpinner';
+
+import profileImg from "../../assets/images/profile_img.png";
+import icoNext from "../../assets/images/ico_cal_next.png";
+
+const GlobalStyle = createGlobalStyle`
+    html, body {
+        overflow: hidden;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+    }
+`;
 
 const Wrapper = styled.div`
-    min-height: 100vh;
+    width: 100%;
+    height: calc(100vh - 145px); /* 네브바(60px)와 푸터(85px)의 합: 145px */
     display: flex;
     flex-direction: column;
-`;
-
-const Header = styled.header`
-    padding: 20px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-`;
-
-const Nav = styled.nav`
-    ul {
-        display: flex;
-        gap: 20px;
-    }
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    overflow: hidden;
+    justify-content: center;
 `;
 
 const GuideWrap = styled.div`
     display: flex;
-    gap: 20px;
-    padding: 20px;
+    gap: 24px;
+    padding: 24px;
+    height: 100%;
+    max-width: 1440px;
+    margin: 0 auto;
+    width: 85%;
+    overflow: hidden;
+
+    margin-bottom: 80px;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        padding: 16px;
+        gap: 16px;
+        height: calc(100vh - 165px); /* 모바일에서는 여유공간 줄임 */
+    }
 `;
 
 const ChatSection = styled.div`
-    flex: 2;
+    flex: 2.8;
     border: 1px solid #eee;
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+    @media (max-width: 768px) {
+        flex: 1;
+        min-height: 60vh;
+    }
 `;
 
 const MessagesChat = styled.div`
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 80px); /* FooterChat 높이 고려 */
+    
+    @media (max-width: 768px) {
+        padding: 16px;
+    }
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f8f8f8;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: #ccc;
+    }
 `;
 
 const Message = styled.div`
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    gap: 12px;
+    width: 100%;
+    align-items: flex-start;
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.3s ease forwards;
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    &.response {
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
+
+    &:last-child {
+        margin-bottom: 4px;
+    }
 `;
 
 const Photo = styled.div`
@@ -56,106 +129,618 @@ const Photo = styled.div`
         width: 40px;
         height: 40px;
         border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 2px solid #fff;
+    }
+    
+    &.response img {
+        border-color: #E3F2FD;
     }
 `;
 
 const ChatText = styled.div`
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: fit-content;
+    max-width: 85%;
+    position: relative;
+
+    &.response {
+        align-items: flex-end;
+    }
 `;
 
 const Text = styled.div`
     background: #f5f5f5;
-    padding: 10px;
+    padding: 10px 15px;
     border-radius: 10px;
-    margin-bottom: 10px;
     position: relative;
+    display: inline-block;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    width: fit-content;
+    margin: 0;
+
+    p {
+        margin: 0;
+        line-height: 1.4;
+    }
+
+    &.response {
+        background: #E3F2FD;
+        color: #1976D2;
+        border: 1px solid #BBDEFB;
+    }
+
+    &.calendar {
+        padding: 0;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        overflow: hidden;
+        
+        .flatpickr-calendar {
+            border: none;
+            box-shadow: none;
+            margin: 0;
+            padding: 16px;
+            background: transparent;
+            width: 320px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+            &.disabled {
+                position: relative;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(255, 255, 255, 0.8);
+                    z-index: 999;
+                    pointer-events: all;
+                }
+
+                .flatpickr-months,
+                .flatpickr-weekdays,
+                .flatpickr-days {
+                    opacity: 0.5;
+                }
+
+                .flatpickr-day {
+                    pointer-events: none;
+                    
+                    &.selected {
+                        background: #1976D2 !important;
+                        color: white !important;
+                        opacity: 1;
+                    }
+
+                    &.inRange {
+                        background: #1976D2 !important;
+                        color: white !important;
+                        opacity: 0.8;
+                    }
+                }
+
+                .flatpickr-prev-month,
+                .flatpickr-next-month {
+                    pointer-events: none;
+                    opacity: 0.5;
+                }
+            }
+
+            .flatpickr-months {
+                padding: 0 8px;
+                margin-bottom: 12px;
+                display: flex;
+                align-items: center;
+                height: 36px;
+                position: relative;
+
+                .flatpickr-month {
+                    height: 36px;
+                    color: #333;
+                    position: relative;
+                    overflow: visible;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex: 1;
+                }
+
+                .flatpickr-current-month {
+                    padding: 0;
+                    height: auto;
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 8px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    transform: none;
+                    width: auto;
+                    left: auto;
+                    flex-direction: row-reverse;
+                    
+                    .cur-month {
+                        font-family: inherit;
+                        margin: 0;
+                        padding: 0;
+                        font-weight: 600;
+                    }
+
+                    .numInputWrapper {
+                        width: auto;
+                        height: auto;
+                        position: relative;
+                        margin-right: 4px;
+
+                        &::after {
+                            content: "년";
+                            margin-left: 2px;
+                        }
+
+                        input.cur-year {
+                            font-size: 16px;
+                            font-weight: 600;
+                            color: #333;
+                            padding: 0;
+                            height: auto;
+                            line-height: inherit;
+                            font-family: inherit;
+                            width: 60px;
+                            text-align: center;
+                        }
+
+                        span {
+                            display: none;
+                        }
+                    }
+                }
+            }
+
+            .flatpickr-innerContainer {
+                display: block;
+
+                .flatpickr-weekdays {
+                    margin: 0;
+                    padding: 0 8px;
+                    height: 28px;
+                    display: flex;
+                    align-items: center;
+                    border-bottom: 1px solid #eee;
+                    margin-bottom: 8px;
+                    background: transparent;
+                }
+
+                .flatpickr-weekday {
+                    color: #666;
+                    font-size: 13px;
+                    font-weight: 500;
+                    height: 28px;
+                    line-height: 28px;
+                    flex: 1;
+                    margin: 0;
+                    background: transparent;
+                    text-align: center;
+                }
+
+                .flatpickr-days {
+                    width: 100%;
+                    padding: 0 8px;
+
+                    .dayContainer {
+                        width: 100%;
+                        min-width: auto;
+                        max-width: none;
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: space-between;
+                        padding: 0;
+                        outline: 0;
+                        width: 100%;
+                    }
+
+                    .flatpickr-day {
+                        margin: 2px;
+                        height: 36px;
+                        line-height: 36px;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        font-weight: 400;
+                        color: #333;
+                        border: none;
+                        width: calc(100% / 7 - 4px);
+                        max-width: none;
+                        flex-basis: calc(100% / 7 - 4px);
+                        transition: all 0.2s ease;
+
+                        &:hover:not(.selected):not(.inRange) {
+                            background: #f5f5f5;
+                        }
+
+                        &.selected {
+                            background: #1976D2;
+                            color: white;
+                            font-weight: 500;
+                            position: relative;
+                            z-index: 3;
+
+                            &:hover {
+                                background: #1565C0;
+                            }
+                        }
+
+                        &.inRange {
+                            background: #1976D2;
+                            color: white;
+                            border-radius: 0;
+                            position: relative;
+                            opacity: 0.8;
+                        }
+
+                        &.startRange {
+                            border-radius: 8px;
+                            border-top-right-radius: 0;
+                            border-bottom-right-radius: 0;
+                            opacity: 1;
+                        }
+
+                        &.endRange {
+                            border-radius: 8px;
+                            border-top-left-radius: 0;
+                            border-bottom-left-radius: 0;
+                            opacity: 1;
+                        }
+
+                        &.prevMonthDay,
+                        &.nextMonthDay {
+                            color: #bbb;
+                        }
+
+                        &.disabled {
+                            color: #ddd;
+                            cursor: not-allowed;
+                            
+                            &:hover {
+                                background: transparent;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 `;
 
 const Time = styled.span`
     font-size: 12px;
     color: #999;
+    margin-left: 8px;
+    margin-right: 8px;
+    flex-shrink: 0;
+`;
+
+const MessageWrapper = styled.div`
+    display: flex;
+    align-items: flex-end;
+    width: fit-content;
+    gap: 8px;
+    margin-bottom: 4px;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+
+    &.response {
+        flex-direction: row-reverse;
+        
+        ${Time} {
+            margin-right: 0;
+            margin-left: 8px;
+        }
+    }
+
+    &:not(.response) {
+        ${Time} {
+            margin-left: 0;
+            margin-right: 8px;
+        }
+    }
 `;
 
 const FooterChat = styled.div`
     border-top: 1px solid #eee;
-    padding: 20px;
+    padding: 14px 20px;
+    flex-shrink: 0;
+    background: #fff;
+    height: 80px; /* 고정 높이 */
+    display: flex;
+    align-items: center;
+    position: relative;
+`;
+
+const ChatInputWrapper = styled.div`
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 6px 16px;
+    gap: 2px;
+    border: 2px solid transparent;
+    box-shadow: none;
+    transition: all 0.2s ease;
+    position: relative;
+
+    &:focus-within {
+        border-color: #BBDEFB;
+        box-shadow: 0 0 0 1px #BBDEFB;
+    }
+
+    .calendar-wrapper {
+        position: absolute;
+        bottom: 100%;
+        left: 0;
+        margin-bottom: 8px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+
+        .flatpickr-calendar {
+            border: none;
+            box-shadow: none;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+        }
+    }
+`;
+
+const InputArea = styled.div`
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: none;
+    
+`;
+
+const ToolsArea = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: none;
 `;
 
 const SendForm = styled.input`
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-bottom: 10px;
-`;
+    border: none !important;
+    outline: none !important;
+    background: transparent;
+    font-size: 16px !important;
+    font-weight: 400;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1;
+    color: #333;
+    padding: 0;
+    margin: 10px;
+    box-shadow: none !important;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 
-const FooterChatTools = styled.div`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    
-    ul {
-        display: flex;
-        gap: 10px;
+    &:focus,
+    &:hover,
+    &:active {
+        outline: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    &:disabled {
+        color: #999;
+        cursor: not-allowed;
+        background: transparent;
+        border: none !important;
+        outline: none !important;
+    }
+
+    &::placeholder {
+        color: #999;
+        font-size: 13px;
+        font-weight: 400;
     }
 `;
 
-const SearchingSection = styled.div`
-    flex: 1;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    padding: 20px;
-`;
-
-const DestinationList = styled.ul`
-    li {
-        margin-bottom: 20px;
-    }
-
-    input {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
-`;
-
-const DateRange = styled.p`
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-`;
 
 const Button = styled.button`
-    padding: 10px 20px;
-    border-radius: 20px;
-    background: #007bff;
-    color: white;
-    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: url(${icoNext}) no-repeat center;
+    background-size: 24px;
+    color: transparent;
+    border-radius: 50%;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    transition: all 0.2s ease;
     cursor: pointer;
+    border: none;
+    padding: 0;
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+    position: absolute;
+    right: 4px;
+    bottom: 4px;
+
+    &:hover:not(:disabled) {
+        background: url(${icoNext}) no-repeat center rgba(0, 0, 0, 0.05);
+        background-size: 24px;
+    }
+
+    &:disabled {
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.8);
+        transition: all 0.2s ease;
+    }
 
     &.round_big {
+        position: static;
         width: 100%;
         padding: 15px;
+        border-radius: 12px;
+        height: auto;
+        font-size: 14px;
+        background: none;
+        color: #333;
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+
+        &:disabled {
+            opacity: 0.6;
+            visibility: visible;
+            transform: none;
+        }
     }
 `;
 
-const Footer = styled.footer`
-    margin-top: auto;
-    padding: 20px;
-    background: #f5f5f5;
+const LoadingContainer = styled.div`
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 1000;
+`;
 
-    ul {
-        display: flex;
-        gap: 20px;
-        justify-content: center;
-        margin-bottom: 10px;
+const ResponseSection = styled.div`
+    flex: 1.2;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    position: relative;
+
+    @media (max-width: 768px) {
+        flex: 1;
+        height: 40vh;
     }
 `;
 
-const Copyright = styled.p`
-    text-align: center;
-    color: #666;
+const ResponseList = styled.ul`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    margin: 30px;
+    height: 100%;
+    justify-content: space-between;
+    
+    li {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+
+        &.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        strong {
+            display: block;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+    }
+`;
+
+const ResponseField = styled.div`
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    border: 1px solid #eee;
+    transition: all 0.2s ease;
+    
+    p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.4;
+        color: #333;
+        word-break: break-all;
+    }
+
+    &.empty {
+        background: #fff;
+        p {
+            color: #adb5bd;
+            font-size: 13px;
+        }
+    }
+`;
+
+const DateRangeField = styled.div`
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    ${ResponseField} {
+        position: relative;
+        padding-left: 48px;
+
+        &::before {
+            content: '';
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            background: #666;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        &:first-child::before {
+            background: #1976D2;
+        }
+
+        &:hover {
+            border-color: #dee2e6;
+            background: #fff;
+        }
+
+        &.empty:hover {
+            background: #f8f9fa;
+        }
+    }
 `;
 
 const BlindText = styled.span`
@@ -169,150 +754,500 @@ const BlindText = styled.span`
     border: 0;
 `;
 
-const Calendar = styled.div`
-    margin-top: 10px;
 
-    .flatpickr-calendar {
-        background: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-`;
+const getQuestion = (userName: string) => [
+    "안녕하세요!",
+    `이번 여행에서 ${userName}님의 가이드를 맞게된 ###입니다!`,
+    `여행 가이드에 앞서 몇가지 질문을 받아 ${userName}님의 취향을 분석하여 최적의 가이드를 진행하려고 합니다!`,
+    `${userName}님의 여행기간은 언제인가요?`,
+    `${userName}님은 어떤 종류의 활동을 선호하시나요?`,
+    `${userName}님은 어떤 종류의 음식을 선호하시나요?`,
+    `${userName}님은 못먹는 종류의 음식이 있으신가요?`,
+    "추가적으로 반영하고 싶은 내용이 있나요?",
+    `${userName}님의 답변 내용을 바탕으로 여행지를 추천해드리겠습니다!`,
+    "잠시만 기다려주세요!"
+]
 
-const QuestionPage = () => {
+// 채팅 메시지 인터페이스
+interface Message {
+    content: string;
+    timestamp: string;
+    isResponse: boolean;  // true면 사용자 응답, false면 질문자 메시지
+}
+
+const QuestionPage: React.FC = () => {
+    // 상태 관리
+    const question = getQuestion("김수연");
+    const [chatHistory, setChatHistory] = useState<Message[]>([]); // 채팅 기록
+    const [defaultQuestions, setDefaultQuestions] = useState<Message[]>([]); // 기본 질문들
+    const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+    const [inputValue, setInputValue] = useState("");
+    const [isQuestionInProgress, setIsQuestionInProgress] = useState(true);
+    const [isComplete, setIsComplete] = useState(false);
+    
+    // 사용자 응답 데이터 관리
+    const [userAnswers, setUserAnswers] = useState({
+        destination: "부산",
+        dateRange: {
+            start: "",
+            end: ""
+        },
+        activities: "",
+        foodPreferences: "",
+        foodRestrictions: "",
+        additionalRequests: ""
+    });
+
+    // 임시 날짜 범위 저장
+    const [tempDateRange, setTempDateRange] = useState({
+        start: "",
+        end: ""
+    });
+
+    // 보여질 섹션 관리
+    const [visibleSections, setVisibleSections] = useState<string[]>(["destination"]);
+
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const messageEndRef = React.useRef<HTMLDivElement>(null);
+
+    // 채팅창 자동 스크롤
+    const scrollToBottom = () => {
+        if (messageEndRef.current) {
+            messageEndRef.current.scrollIntoView({ 
+                behavior: "smooth", 
+                block: "end"
+            });
+        }
+    };
+
     useEffect(() => {
-        // chat 안의 달력
-        flatpickr(".inCal", {
-            locale: Korean,
-            mode: "range",
-            inline: true,
-            dateFormat: "Y-m-d",
-            defaultDate: ["2025-02-17", "2025-02-21"]
-        });
-        
-        // 기본 달력
-        flatpickr(".selector", {
-            locale: Korean,
-            enableTime: true,
-            dateFormat: "Y-m-d H:i",
-        });
+        scrollToBottom();
+    }, [chatHistory, defaultQuestions]);
+
+    useEffect(() => {
+        if (!isQuestionInProgress) {
+            scrollToBottom();
+        }
+    }, [isQuestionInProgress]);
+
+    useEffect(() => {
+        scrollToBottom();
     }, []);
 
-    return (
-        <Wrapper>
-            <Header>
-                <h1><a href="#"><img src="/images/t_logo.png" alt="logo" /></a></h1>
-                <Nav>
-                    <ul>
-                        <li><a href="service.html">서비스 소개</a></li>
-                        <li><a href="guide.html">가이드북</a></li>
-                        <li><a href="travel.html">여행지 검색</a></li>
-                    </ul>
-                    <a href="my_profile.html" className="user_id"><i></i>Sooyeony</a>
-                </Nav>
-            </Header>
+    // 초기 질문 표시
+    useEffect(() => {
+        if (currentQuestionIndex < 4) {
+            setIsQuestionInProgress(true);
+            setTimeout(() => {
+                setDefaultQuestions(prev => [...prev, {
+                    content: question[currentQuestionIndex],
+                    timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                    isResponse: false
+                }]);
+                setCurrentQuestionIndex(prev => prev + 1);
+                if (currentQuestionIndex === 3) {
+                    setIsQuestionInProgress(false);
+                }
+            }, 1000);
+        }
+    }, [currentQuestionIndex]);
 
-            <main>
-                <div className="inner">
-                    <GuideWrap>
-                        <ChatSection>
-                            <MessagesChat>
-                                <Message>
-                                    <Photo>
-                                        <img src="/images/profile_img.png" alt="" />
+    // 여행 기간 질문 처리
+    useEffect(() => {
+        const isDateQuestion = defaultQuestions.length > 0 && 
+            defaultQuestions[defaultQuestions.length - 1].content.includes("여행기간은 언제인가요?") &&
+            !chatHistory.some(msg => msg.content === "calendar");
+        
+        if (isDateQuestion && !isQuestionInProgress) {
+            setIsQuestionInProgress(true);
+            
+            setChatHistory(prev => [...prev, {
+                content: "calendar",
+                timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                isResponse: false
+            }]);
+
+            setTimeout(() => {
+                const calendarElement = document.querySelector('.calendar-message');
+                if (calendarElement) {
+                    flatpickr(calendarElement, {
+                        locale: Korean,
+                        mode: "range",
+                        inline: true,
+                        dateFormat: "Y-m-d",
+                        onChange: (selectedDates) => {
+                            if (selectedDates.length === 2) {
+                                const startDate = selectedDates[0].toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+                                const endDate = selectedDates[1].toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+                                const dateRange = `${startDate} ~ ${endDate}`;
+
+                                // 임시로 날짜 데이터 저장
+                                setTempDateRange({
+                                    start: startDate,
+                                    end: endDate
+                                });
+
+                                // 캘린더 비활성화
+                                const calendarElement = document.querySelector('.flatpickr-calendar');
+                                if (calendarElement) {
+                                    calendarElement.classList.add('disabled');
+                                }
+
+                                // 확인 메시지 표시
+                                setChatHistory(prev => [...prev, {
+                                    content: `선택하신 기간이 ${dateRange} 맞으신가요? 맞으시다면 '네'를 입력해주세요.`,
+                                    timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                                    isResponse: false
+                                }]);
+                                setIsQuestionInProgress(false);
+                            }
+                        }
+                    });
+                }
+            }, 100);
+        }
+    }, [defaultQuestions, isQuestionInProgress]);
+
+    // 다음 질문 표시 (캘린더 이후 질문들)
+    useEffect(() => {
+        if (currentQuestionIndex > 4 && currentQuestionIndex < question.length && !isQuestionInProgress) {
+            const lastMessage = chatHistory[chatHistory.length - 1];
+            
+            if (!lastMessage?.isResponse) {
+                return;
+            }
+
+            setIsQuestionInProgress(true);
+            setTimeout(() => {
+                setChatHistory(prev => [...prev, {
+                    content: question[currentQuestionIndex],
+                    timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                    isResponse: false
+                }]);
+                setCurrentQuestionIndex(prev => prev + 1);
+                setIsQuestionInProgress(false);
+            }, 1000);
+        }
+    }, [currentQuestionIndex, chatHistory]);
+
+    // 입력창 포커스
+    useEffect(() => {
+        if (!isQuestionInProgress && !isComplete && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isQuestionInProgress, isComplete]);
+
+    // 사용자 응답에 따라 섹션 표시
+    const handleUserResponse = (response: string, currentQuestion: string) => {
+        setTimeout(() => {
+            if (currentQuestion.includes("여행기간은 언제인가요") && response === '네') {
+                setVisibleSections(prev => [...prev, "dateRange"]);
+            } else if (currentQuestion.includes("활동을 선호하시나요")) {
+                setVisibleSections(prev => [...prev, "activities"]);
+                setUserAnswers(prev => ({ ...prev, activities: response }));
+            } else if (currentQuestion.includes("음식을 선호하시나요")) {
+                setVisibleSections(prev => [...prev, "foodPreferences"]);
+                setUserAnswers(prev => ({ ...prev, foodPreferences: response }));
+            } else if (currentQuestion.includes("못먹는 종류의 음식이 있으신가요")) {
+                setVisibleSections(prev => [...prev, "foodRestrictions"]);
+                setUserAnswers(prev => ({ ...prev, foodRestrictions: response }));
+            } else if (currentQuestion.includes("추가적으로 반영하고 싶은 내용이 있나요")) {
+                setVisibleSections(prev => [...prev, "additionalRequests"]);
+                setUserAnswers(prev => ({ ...prev, additionalRequests: response }));
+            }
+        }, 500); // 500ms 지연으로 자연스러운 업데이트
+    };
+
+    // 메시지 전송 처리
+    const handleSendMessage = () => {
+        if (inputValue.trim() !== "" && !isQuestionInProgress && !isComplete) {
+            setIsQuestionInProgress(true);
+            const currentTime = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
+            const currentQuestion = question[currentQuestionIndex - 1];
+            
+            // 사용자 응답 추가
+            setChatHistory(prev => [...prev, {
+                content: inputValue,
+                timestamp: currentTime,
+                isResponse: true
+            }]);
+
+            // 날짜 확인 응답 처리
+            if (tempDateRange.start && tempDateRange.end && inputValue.toLowerCase() === '네') {
+                // 확정된 날짜를 userAnswers에 저장
+                setUserAnswers(prev => ({
+                    ...prev,
+                    dateRange: tempDateRange
+                }));
+
+                // 섹션 표시 업데이트
+                handleUserResponse(inputValue, currentQuestion);
+
+                // 캘린더 비활성화
+                const calendarElement = document.querySelector('.flatpickr-calendar');
+                if (calendarElement) {
+                    calendarElement.classList.add('disabled');
+                }
+
+                // 다음 질문으로 진행
+                setTimeout(() => {
+                    setChatHistory(prev => [...prev, {
+                        content: question[currentQuestionIndex],
+                        timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                        isResponse: false
+                    }]);
+                    setCurrentQuestionIndex(prev => prev + 1);
+                    setIsQuestionInProgress(false);
+                    // 임시 저장된 날짜 초기화
+                    setTempDateRange({ start: "", end: "" });
+                }, 1000);
+            } else if (tempDateRange.start && tempDateRange.end) {
+                // '네'가 아닌 다른 응답인 경우 캘린더 재선택 안내
+                setIsQuestionInProgress(true);
+                setTimeout(() => {
+                    setChatHistory(prev => [...prev, {
+                        content: "날짜를 다시 선택해주세요.",
+                        timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                        isResponse: false
+                    }]);
+                    
+                    // 캘린더 초기화 및 재생성
+                    const calendar = document.querySelector('.calendar-message');
+                    if (calendar) {
+                        const fp = flatpickr(calendar, {
+                            locale: Korean,
+                            mode: "range",
+                            inline: true,
+                            dateFormat: "Y-m-d",
+                            onChange: (selectedDates) => {
+                                if (selectedDates.length === 2) {
+                                    const startDate = selectedDates[0].toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+                                    const endDate = selectedDates[1].toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+                                    const dateRange = `${startDate} ~ ${endDate}`;
+
+                                    // 임시로 날짜 데이터 저장
+                                    setTempDateRange({
+                                        start: startDate,
+                                        end: endDate
+                                    });
+
+                                    // 캘린더 비활성화
+                                    const calendarElement = calendar.querySelector('.flatpickr-calendar');
+                                    if (calendarElement) {
+                                        calendarElement.classList.add('disabled');
+                                    }
+
+                                    // 확인 메시지 표시
+                                    setChatHistory(prev => [...prev, {
+                                        content: `선택하신 기간이 ${dateRange} 맞으신가요? 맞으시다면 '네'를 입력해주세요.`,
+                                        timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                                        isResponse: false
+                                    }]);
+                                    setIsQuestionInProgress(false);
+                                }
+                            }
+                        });
+                        fp.clear();
+                        
+                        // 캘린더 활성화
+                        const calendarElement = calendar.querySelector('.flatpickr-calendar');
+                        if (calendarElement) {
+                            calendarElement.classList.remove('disabled');
+                        }
+                    }
+                    setTempDateRange({ start: "", end: "" });
+                    
+                    // 캘린더 위치로 스크롤
+                    const calendarMessage = document.querySelector('.calendar-message');
+                    if (calendarMessage) {
+                        const calendarContainer = calendarMessage.closest('.Message');
+                        if (calendarContainer) {
+                            calendarContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                }, 1000);
+            } else {
+                // 일반적인 질문 처리
+                handleUserResponse(inputValue, currentQuestion);
+
+                if (currentQuestion.includes("추가적으로 반영하고 싶은 내용이 있나요?")) {
+                    setTimeout(() => {
+                        setChatHistory(prev => [...prev, {
+                            content: question[currentQuestionIndex],
+                            timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                            isResponse: false
+                        }]);
+
+                        setTimeout(() => {
+                            setChatHistory(prev => [...prev, {
+                                content: question[currentQuestionIndex + 1],
+                                timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                                isResponse: false
+                            }]);
+                            
+                            // 마지막 질문 이후 1초 뒤에 로딩 스피너 표시
+                            setTimeout(() => {
+                                setIsComplete(true);
+                            }, 1000);
+                        }, 1000);
+                    }, 1000);
+                } else {
+                    setTimeout(() => {
+                        setChatHistory(prev => [...prev, {
+                            content: question[currentQuestionIndex],
+                            timestamp: new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' }),
+                            isResponse: false
+                        }]);
+                        setCurrentQuestionIndex(prev => prev + 1);
+                        setIsQuestionInProgress(false);
+                    }, 1000);
+                }
+            }
+
+            setInputValue("");
+        }
+    };
+
+    // 이전 메시지와 현재 메시지가 같은 사람의 메시지인지 확인하는 함수
+    const shouldShowPhoto = (messages: Message[], currentIndex: number) => {
+        if (currentIndex === 0) return true;
+        const currentMessage = messages[currentIndex];
+        const previousMessage = messages[currentIndex - 1];
+        return currentMessage.isResponse !== previousMessage.isResponse;
+    };
+
+    return (
+        <>
+            <GlobalStyle />
+            <Wrapper>
+                {isComplete && (
+                    <LoadingContainer>
+                        <LoadingSpinner />
+                    </LoadingContainer>
+                )}
+                <GuideWrap>
+                    <ChatSection>
+                        <MessagesChat>
+                            {defaultQuestions.map((msg, index) => (
+                                <Message key={index}>
+                                    <Photo style={{ visibility: shouldShowPhoto(defaultQuestions, index) ? 'visible' : 'hidden' }}>
+                                        <img src={profileImg} alt="" />
                                     </Photo>
                                     <ChatText>
-                                        <Text>
-                                            <p>안녕하세요!<br />
-                                                이번 여행에서 김수연님의 가이드를 맞게 된 홍길순입니다!</p>
-                                            <Time>03:48</Time>
-                                        </Text>
-                                        <Text>
-                                            <p>여행 가이드에 앞서 몇가지 질문을 받아 김수연님의 취향을 분석하여 최적의 가이드를 진행하려고 합니다!</p>
-                                            <Time>03:48</Time>
-                                        </Text>
-                                        <Text>
-                                            <div>
-                                                <span>김수연님의 여행 기간은 언제인가요?</span>
-                                                <Calendar>
-                                                    <input type="text" className="inCal" />
-                                                </Calendar>
-                                            </div>
-                                            <Time>03:48</Time>
-                                        </Text>
+                                        <MessageWrapper>
+                                            <Text>
+                                                <p>{msg.content}</p>
+                                            </Text>
+                                            <Time>{msg.timestamp}</Time>
+                                        </MessageWrapper>
                                     </ChatText>
                                 </Message>
-                                <Message>
-                                    <div className="response">
-                                        <Text>
-                                            <Time>읽음</Time>
-                                            <Time>03:48</Time>
-                                            <div>외부 활동, 등산을 선호합니다.</div>
-                                        </Text>
-                                        <Text>
-                                            <Time>안읽음</Time>
-                                            <Time>03:48</Time>
-                                            <div>Lorem ipsum dolor sit amet consectetur adipisicing elit.</div>
-                                        </Text>
-                                    </div>
-                                    <Photo>
-                                        <img src="/images/profile_img.png" alt="" />
+                            ))}
+                            {chatHistory.map((msg, index) => (
+                                <Message key={index} className={msg.isResponse ? "response" : ""}>
+                                    <Photo className={msg.isResponse ? "response" : ""} style={{ visibility: shouldShowPhoto(chatHistory, index) ? 'visible' : 'hidden' }}>
+                                        <img src={profileImg} alt="" />
                                     </Photo>
+                                    <ChatText className={msg.isResponse ? "response" : ""}>
+                                        <MessageWrapper className={msg.isResponse ? "response" : ""}>
+                                            {msg.content === "calendar" ? (
+                                                <Text className="calendar">
+                                                    <div className="calendar-message" />
+                                                </Text>
+                                            ) : (
+                                                <Text className={msg.isResponse ? "response" : ""}>
+                                                    <p>{msg.content}</p>
+                                                </Text>
+                                            )}
+                                            <Time>{msg.timestamp}</Time>
+                                        </MessageWrapper>
+                                    </ChatText>
                                 </Message>
-                            </MessagesChat>
+                            ))}
+                            <div ref={messageEndRef} />
+                        </MessagesChat>
 
-                            <FooterChat>
-                                <SendForm type="text" />
-                                <FooterChatTools>
-                                    <ul>
-                                        <li className="imogi"><a href="#"><BlindText>이모지</BlindText></a></li>
-                                        <li className="calc"><a href="#"><BlindText>달력</BlindText></a></li>
-                                        <li className="time"><a href="#"><BlindText>시간</BlindText></a></li>
-                                        <li className="file"><a href="#"><BlindText>파일</BlindText></a></li>
-                                        <li className="crop"><a href="#"><BlindText>자르기</BlindText></a></li>
-                                        <li className="text"><a href="#"><BlindText>텍스트</BlindText></a></li>
-                                    </ul>
-                                    <Button><span>입력</span></Button>
-                                </FooterChatTools>
-                            </FooterChat>
-                        </ChatSection>
-                        <SearchingSection>
-                            <DestinationList>
-                                <li>
-                                    <strong>여행지</strong>
-                                    <p>
-                                        <input type="text" defaultValue="부산" />
-                                    </p>
-                                </li>
-                                <li>
-                                    <strong>여행기간</strong>
-                                    <DateRange>
-                                        <span><input type="text" className="mb5 selector" defaultValue="2025-02-21 10:00" /></span>
-                                        <span><input type="text" className="selector" defaultValue="2025-02-25 10:00" /></span>
-                                    </DateRange>
-                                </li>
-                                <li>
-                                    <strong>선호활동</strong>
-                                    <p>
-                                        <input type="text" defaultValue="외부활동, 등산, 워킹" />
-                                    </p>
-                                </li>
-                            </DestinationList>
-                            <Button className="round_big"><span>저장중</span></Button>
-                        </SearchingSection>
-                    </GuideWrap>
-                </div>
-            </main>
-
-            <Footer>
-                <div className="ft_menu">
-                    <ul>
-                        <li><a href="#">개인정보보호방침</a></li>
-                        <li><a href="#">고객센터</a></li>
-                    </ul>
-                </div>
-                <Copyright>Copyright 2025. Capstone All rights reserved.</Copyright>
-            </Footer>
-        </Wrapper>
+                        <FooterChat>
+                            <ChatInputWrapper>
+                                <InputArea>
+                                    <SendForm
+                                        ref={inputRef}
+                                        type="text"
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" && !e.shiftKey && !isQuestionInProgress && !isComplete) {
+                                                e.preventDefault();
+                                                if (!inputValue.trim()) return;
+                                                handleSendMessage();
+                                            }
+                                        }}
+                                        disabled={isQuestionInProgress || isComplete}
+                                        placeholder={
+                                            isComplete ? '질문이 완료되었습니다.' :
+                                            isQuestionInProgress ? '질문이 진행 중입니다...' : 
+                                            '메시지 입력...'
+                                        }/>
+                                </InputArea>
+                                <ToolsArea>
+                                    
+                                    <Button 
+                                        onClick={handleSendMessage} 
+                                        disabled={isQuestionInProgress || isComplete}>
+                                        <BlindText>입력</BlindText>
+                                    </Button>
+                                </ToolsArea>
+                            </ChatInputWrapper>
+                        </FooterChat>
+                    </ChatSection>
+                    <ResponseSection>
+                        <ResponseList>
+                            <li className={visibleSections.includes("destination") ? "visible" : ""}>
+                                <strong>여행지</strong>
+                                <ResponseField className={!userAnswers.destination ? "empty" : ""}>
+                                    <p>{userAnswers.destination || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                            <li className={visibleSections.includes("dateRange") ? "visible" : ""}>
+                                <strong>여행 기간</strong>
+                                <DateRangeField>
+                                    <ResponseField className={!userAnswers.dateRange.start ? "empty" : ""}>
+                                        <p>{userAnswers.dateRange.start || "시작일을 선택해주세요."}</p>
+                                    </ResponseField>
+                                    <ResponseField className={!userAnswers.dateRange.end ? "empty" : ""}>
+                                        <p>{userAnswers.dateRange.end || "종료일을 선택해주세요."}</p>
+                                    </ResponseField>
+                                </DateRangeField>
+                            </li>
+                            <li className={visibleSections.includes("activities") ? "visible" : ""}>
+                                <strong>선호 활동</strong>
+                                <ResponseField className={!userAnswers.activities ? "empty" : ""}>
+                                    <p>{userAnswers.activities || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                            <li className={visibleSections.includes("foodPreferences") ? "visible" : ""}>
+                                <strong>선호하는 음식</strong>
+                                <ResponseField className={!userAnswers.foodPreferences ? "empty" : ""}>
+                                    <p>{userAnswers.foodPreferences || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                            <li className={visibleSections.includes("foodRestrictions") ? "visible" : ""}>
+                                <strong>못 먹는 음식</strong>
+                                <ResponseField className={!userAnswers.foodRestrictions ? "empty" : ""}>
+                                    <p>{userAnswers.foodRestrictions || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                            <li className={visibleSections.includes("additionalRequests") ? "visible" : ""}>
+                                <strong>추가 요청사항</strong>
+                                <ResponseField className={!userAnswers.additionalRequests ? "empty" : ""}>
+                                    <p>{userAnswers.additionalRequests || "아직 입력되지 않았습니다."}</p>
+                                </ResponseField>
+                            </li>
+                        </ResponseList>
+                    </ResponseSection>
+                </GuideWrap>
+            </Wrapper>
+        </>
     );
 };
 
