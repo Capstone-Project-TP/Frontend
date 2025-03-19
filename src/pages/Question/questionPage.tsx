@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useRef} from 'react';
 import flatpickr from 'flatpickr';
 import { Korean } from 'flatpickr/dist/l10n/ko';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -435,7 +435,7 @@ const MessageWrapper = styled.div`
     align-items: flex-end;
     width: fit-content;
     gap: 8px;
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 
     &:last-child {
         margin-bottom: 0;
@@ -651,18 +651,42 @@ const ResponseSection = styled.div`
 `;
 
 const ResponseList = styled.ul`
-    flex: 1;
+    list-style: none;
     display: flex;
     flex-direction: column;
     padding: 0;
     margin: 30px;
-    height: 100%;
-    justify-content: space-between;
+    height: 400px;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f8f8f8;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background: #ccc;
+    }
     
     li {
         opacity: 0;
         transform: translateY(20px);
         transition: all 0.3s ease;
+        margin-bottom: 20px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
 
         &.visible {
             opacity: 1;
@@ -677,6 +701,14 @@ const ResponseList = styled.ul`
             margin-bottom: 8px;
             padding-left: 4px;
         }
+    }
+
+    &.overflow {
+        overflow-y: scroll;
+    }
+
+    @media (max-width: 768px) {
+        height: 300px;
     }
 `;
 
@@ -732,7 +764,7 @@ const DateRangeField = styled.div`
             background: #1976D2;
         }
 
-        &:hover {
+  &:hover {
             border-color: #dee2e6;
             background: #fff;
         }
@@ -740,7 +772,7 @@ const DateRangeField = styled.div`
         &.empty:hover {
             background: #f8f9fa;
         }
-    }
+  }
 `;
 
 const BlindText = styled.span`
@@ -809,6 +841,7 @@ const QuestionPage: React.FC = () => {
 
     const inputRef = React.useRef<HTMLInputElement>(null);
     const messageEndRef = React.useRef<HTMLDivElement>(null);
+    const responseListRef = useRef<HTMLUListElement>(null);
 
     // 채팅창 자동 스크롤
     const scrollToBottom = () => {
@@ -1116,10 +1149,65 @@ const QuestionPage: React.FC = () => {
         return currentMessage.isResponse !== previousMessage.isResponse;
     };
 
+    // 스크롤 상태 체크
+    useEffect(() => {
+        const checkOverflow = () => {
+            if (responseListRef.current) {
+                const list = responseListRef.current;
+                const contentHeight = Array.from(list.children).reduce((total, child) => total + child.clientHeight, 0);
+                const containerHeight = list.clientHeight;
+                
+                if (contentHeight > containerHeight) {
+                    list.classList.add('overflow');
+                } else {
+                    list.classList.remove('overflow');
+                }
+            }
+        };
+
+        const scrollToBottom = () => {
+            if (responseListRef.current && responseListRef.current.classList.contains('overflow')) {
+                const list = responseListRef.current;
+                list.scrollTo({
+                    top: list.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }
+        };
+
+        // 초기 체크
+        checkOverflow();
+        
+        // ResizeObserver를 사용하여 크기 변화 감지
+        const observer = new ResizeObserver(() => {
+            checkOverflow();
+            // 약간의 지연 후 스크롤 적용 (애니메이션 완료 후)
+            setTimeout(scrollToBottom, 100);
+        });
+
+        if (responseListRef.current) {
+            observer.observe(responseListRef.current);
+        }
+
+        // 섹션이 추가될 때마다 체크
+        const timer = setTimeout(() => {
+            checkOverflow();
+            // 애니메이션 완료 후 스크롤
+            setTimeout(scrollToBottom, 100);
+        }, 100);
+
+        return () => {
+            if (responseListRef.current) {
+                observer.unobserve(responseListRef.current);
+            }
+            clearTimeout(timer);
+        };
+    }, [visibleSections]);
+
     return (
         <>
             <GlobalStyle />
-            <Wrapper>
+        <Wrapper>
                 {isComplete && (
                     <LoadingContainer>
                         <LoadingSpinner />
@@ -1131,9 +1219,9 @@ const QuestionPage: React.FC = () => {
                             {defaultQuestions.map((msg, index) => (
                                 <Message key={index}>
                                     <Photo style={{ visibility: shouldShowPhoto(defaultQuestions, index) ? 'visible' : 'hidden' }}>
-                                        <img src={profileImg} alt="" />
-                                    </Photo>
-                                    <ChatText>
+                                    <img src={profileImg} alt="" />
+                                </Photo>
+                                <ChatText>
                                         <MessageWrapper>
                                             <Text>
                                                 <p>{msg.content}</p>
@@ -1146,8 +1234,8 @@ const QuestionPage: React.FC = () => {
                             {chatHistory.map((msg, index) => (
                                 <Message key={index} className={msg.isResponse ? "response" : ""}>
                                     <Photo className={msg.isResponse ? "response" : ""} style={{ visibility: shouldShowPhoto(chatHistory, index) ? 'visible' : 'hidden' }}>
-                                        <img src={profileImg} alt="" />
-                                    </Photo>
+                                    <img src={profileImg} alt="" />
+                                </Photo>
                                     <ChatText className={msg.isResponse ? "response" : ""}>
                                         <MessageWrapper className={msg.isResponse ? "response" : ""}>
                                             {msg.content === "calendar" ? (
@@ -1162,7 +1250,7 @@ const QuestionPage: React.FC = () => {
                                             <Time>{msg.timestamp}</Time>
                                         </MessageWrapper>
                                     </ChatText>
-                                </Message>
+                            </Message>
                             ))}
                             <div ref={messageEndRef} />
                         </MessagesChat>
@@ -1170,11 +1258,11 @@ const QuestionPage: React.FC = () => {
                         <FooterChat>
                             <ChatInputWrapper>
                                 <InputArea>
-                                    <SendForm
+                            <SendForm
                                         ref={inputRef}
-                                        type="text"
-                                        value={inputValue}
-                                        onChange={(e) => setInputValue(e.target.value)}
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
                                         onKeyDown={(e) => {
                                             if (e.key === "Enter" && !e.shiftKey && !isQuestionInProgress && !isComplete) {
                                                 e.preventDefault();
@@ -1201,52 +1289,64 @@ const QuestionPage: React.FC = () => {
                         </FooterChat>
                     </ChatSection>
                     <ResponseSection>
-                        <ResponseList>
-                            <li className={visibleSections.includes("destination") ? "visible" : ""}>
+                        <ResponseList ref={responseListRef}>
+                            {visibleSections.includes("destination") && (
+                            <li className="visible">
                                 <strong>여행지</strong>
-                                <ResponseField className={!userAnswers.destination ? "empty" : ""}>
-                                    <p>{userAnswers.destination || "아직 입력되지 않았습니다."}</p>
-                                </ResponseField>
-                            </li>
-                            <li className={visibleSections.includes("dateRange") ? "visible" : ""}>
-                                <strong>여행 기간</strong>
-                                <DateRangeField>
-                                    <ResponseField className={!userAnswers.dateRange.start ? "empty" : ""}>
-                                        <p>{userAnswers.dateRange.start || "시작일을 선택해주세요."}</p>
+                                    <ResponseField className={!userAnswers.destination ? "empty" : ""}>
+                                        <p>{userAnswers.destination || "아직 입력되지 않았습니다."}</p>
                                     </ResponseField>
-                                    <ResponseField className={!userAnswers.dateRange.end ? "empty" : ""}>
-                                        <p>{userAnswers.dateRange.end || "종료일을 선택해주세요."}</p>
+                                </li>
+                            )}
+                            {visibleSections.includes("dateRange") && (
+                                <li className="visible">
+                                    <strong>여행 기간</strong>
+                                    <DateRangeField>
+                                        <ResponseField className={!userAnswers.dateRange.start ? "empty" : ""}>
+                                            <p>{userAnswers.dateRange.start || "시작일을 선택해주세요."}</p>
+                                        </ResponseField>
+                                        <ResponseField className={!userAnswers.dateRange.end ? "empty" : ""}>
+                                            <p>{userAnswers.dateRange.end || "종료일을 선택해주세요."}</p>
+                                        </ResponseField>
+                                    </DateRangeField>
+                                </li>
+                            )}
+                            {visibleSections.includes("activities") && (
+                                <li className="visible">
+                                    <strong>선호 활동</strong>
+                                    <ResponseField className={!userAnswers.activities ? "empty" : ""}>
+                                        <p>{userAnswers.activities || "아직 입력되지 않았습니다."}</p>
                                     </ResponseField>
-                                </DateRangeField>
+                                </li>
+                            )}
+                            {visibleSections.includes("foodPreferences") && (
+                                <li className="visible">
+                                    <strong>선호하는 음식</strong>
+                                    <ResponseField className={!userAnswers.foodPreferences ? "empty" : ""}>
+                                        <p>{userAnswers.foodPreferences || "아직 입력되지 않았습니다."}</p>
+                                    </ResponseField>
                             </li>
-                            <li className={visibleSections.includes("activities") ? "visible" : ""}>
-                                <strong>선호 활동</strong>
-                                <ResponseField className={!userAnswers.activities ? "empty" : ""}>
-                                    <p>{userAnswers.activities || "아직 입력되지 않았습니다."}</p>
-                                </ResponseField>
+                            )}
+                            {visibleSections.includes("foodRestrictions") && (
+                                <li className="visible">
+                                    <strong>못 먹는 음식</strong>
+                                    <ResponseField className={!userAnswers.foodRestrictions ? "empty" : ""}>
+                                        <p>{userAnswers.foodRestrictions || "아직 입력되지 않았습니다."}</p>
+                                    </ResponseField>
                             </li>
-                            <li className={visibleSections.includes("foodPreferences") ? "visible" : ""}>
-                                <strong>선호하는 음식</strong>
-                                <ResponseField className={!userAnswers.foodPreferences ? "empty" : ""}>
-                                    <p>{userAnswers.foodPreferences || "아직 입력되지 않았습니다."}</p>
-                                </ResponseField>
+                            )}
+                            {visibleSections.includes("additionalRequests") && (
+                                <li className="visible">
+                                    <strong>추가 요청사항</strong>
+                                    <ResponseField className={!userAnswers.additionalRequests ? "empty" : ""}>
+                                        <p>{userAnswers.additionalRequests || "아직 입력되지 않았습니다."}</p>
+                                    </ResponseField>
                             </li>
-                            <li className={visibleSections.includes("foodRestrictions") ? "visible" : ""}>
-                                <strong>못 먹는 음식</strong>
-                                <ResponseField className={!userAnswers.foodRestrictions ? "empty" : ""}>
-                                    <p>{userAnswers.foodRestrictions || "아직 입력되지 않았습니다."}</p>
-                                </ResponseField>
-                            </li>
-                            <li className={visibleSections.includes("additionalRequests") ? "visible" : ""}>
-                                <strong>추가 요청사항</strong>
-                                <ResponseField className={!userAnswers.additionalRequests ? "empty" : ""}>
-                                    <p>{userAnswers.additionalRequests || "아직 입력되지 않았습니다."}</p>
-                                </ResponseField>
-                            </li>
+                            )}
                         </ResponseList>
                     </ResponseSection>
                 </GuideWrap>
-            </Wrapper>
+        </Wrapper>
         </>
     );
 };
