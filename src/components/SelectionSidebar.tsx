@@ -39,20 +39,20 @@ const collapseItem = keyframes`
 const SidebarTitle = styled.strong<{ isComplete?: boolean }>`
     display: block;
     text-align: center;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 10px 0;
-    margin-bottom: 2px;
-    color: ${props => props.isComplete ? '#555' : '#333'};
-    text-shadow: ${props => props.isComplete ? '0 1px 1px rgba(0, 0, 0, 0.2)' : 'none'};
+    font-size: 18px;
+    font-weight: 700;
+    padding: 15px 0;
+    margin-bottom: 10px;
+    color: ${props => props.isComplete ? '#5a5a5a' : '#2c3e50'};
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid ${props => props.isComplete ? '#d8d8d8' : '#3498db'};
 `;
 
 // 사이드바 여행지 목록 스타일 컴포넌트 - 스크롤바 숨김
 const SelectedItemsList = styled.div`
     flex: 1;
     overflow-y: auto;
-    margin-bottom: 70px; /* 버튼 높이 + 여백 */
-    border-top: 1px solid #eee;
+    margin-bottom: 80px; /* 버튼 높이 + 여백 */
     padding-right: 5px;
     scrollbar-width: none; /* Firefox에서는 스크롤바 완전히 숨김 */
     -ms-overflow-style: none; /* IE와 Edge에서 스크롤바 숨김 */
@@ -64,19 +64,26 @@ const SelectedItemsList = styled.div`
 
 // 선택된 여행지 사이드바 스타일 컴포넌트
 const SidebarContainer = styled.div<{ isComplete?: boolean }>`
-    width: 300px;
+    width: 320px;
     min-height: 600px;
-    height: calc(100vh - 300px);
-    background: ${props => props.isComplete ? '#e6e6e6' : '#fff'};
-    border-radius: 10px;
+    height: calc(100vh - 250px);
+    background: ${props => props.isComplete ? '#f5f5f5' : '#ffffff'};
+    border-radius: 16px;
     box-shadow: ${props => props.isComplete 
-        ? '0 2px 10px rgba(0, 0, 0, 0.5)' 
-        : '0 2px 10px rgba(0, 0, 0, 0.3)'};
-    padding: 20px;
-    padding-right: 15px;
+        ? '0 10px 30px rgba(0, 0, 0, 0.08)' 
+        : '0 10px 30px rgba(0, 0, 0, 0.05)'};
+    padding: 25px;
     display: flex;
     flex-direction: column;
     position: relative;
+    transition: all 0.4s ease;
+    border: 1px solid ${props => props.isComplete ? '#e0e0e0' : '#f0f0f0'};
+    
+    &:hover {
+        box-shadow: ${props => props.isComplete 
+            ? '0 15px 35px rgba(0, 0, 0, 0.4)' 
+            : '0 15px 35px rgba(0, 0, 0, 0.2)'};
+    }
     
     @media (max-width: 992px) {
         width: 100%;
@@ -89,35 +96,47 @@ const SelectedItem = styled.div<{ isDeleting?: boolean; isComplete?: boolean }>`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #eee;
-    font-size: 15px;
-    color: ${props => props.isComplete ? '#555' : '#333'};
-    font-weight: 500;
+    padding: 14px 16px;
+    margin: 10px 0;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: ${props => props.isComplete ? '#666' : '#2c3e50'};
+    background: ${props => props.isComplete ? '#f8f8f8' : '#ffffff'};
+    border: 1px solid ${props => props.isComplete ? '#e0e0e0' : '#f0f0f0'};
     opacity: ${props => props.isComplete ? 0.8 : 1};
     animation: ${props => props.isDeleting ? collapseItem : fadeIn} 0.4s ease-out forwards;
     transform-origin: top;
     max-height: ${props => props.isDeleting ? '0' : '60px'};
     transition: ${props => props.isDeleting ? 'none' : 'all 0.3s ease'};
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    
+    &:hover {
+        background: ${props => props.isComplete ? '#f8f8f8' : '#fafafa'};
+        border-color: ${props => props.isComplete ? '#e0e0e0' : '#e8e8e8'};
+    }
 `;
 
 // 사이드바 여행지 아이템 삭제 버튼 스타일 컴포넌트
 const DeleteButton = styled.a<{ isComplete?: boolean }>`
-    display: inline-block;
-    padding: 6px 10px;
-    background: ${props => props.isComplete ? '#e0e0e0' : '#fff'};
-    color: ${props => props.isComplete ? '#aaa' : '#333'};
-    border: 1px solid #ddd;
-    border-radius: 15px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    background: ${props => props.isComplete ? '#e0e0e0' : 'white'};
+    color: ${props => props.isComplete ? '#999' : '#e74c3c'};
+    border: 1px solid ${props => props.isComplete ? '#ccc' : '#e74c3c'};
+    border-radius: 20px;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 600;
     text-decoration: none;
-    transition: all 0.3s;
+    transition: all 0.2s;
     opacity: ${props => props.isComplete ? 0.6 : 1};
     pointer-events: ${props => props.isComplete ? 'none' : 'auto'};
     
     &:hover {
-        background: ${props => props.isComplete ? '#e0e0e0' : '#f0f0f0'};
+        background: ${props => props.isComplete ? '#e0e0e0' : '#e74c3c'};
+        color: ${props => props.isComplete ? '#999' : 'white'};
     }
 `;
 
@@ -127,12 +146,12 @@ const AddPlaceButton = styled.button<{ isComplete?: boolean }>`
     justify-content: center;
     align-items: center;
     width: 100%;
-    padding: 12px 0;
-    margin-top: 10px;
-    background: ${props => props.isComplete ? '#e0e0e0' : '#f5f5f5'};
-    color: ${props => props.isComplete ? '#999' : '#0066cc'};
-    border: 2px dashed ${props => props.isComplete ? '#ccc' : '#0066cc'};
-    border-radius: 8px;
+    padding: 14px 0;
+    margin-top: 15px;
+    background: ${props => props.isComplete ? '#e0e0e0' : 'rgba(52, 152, 219, 0.1)'};
+    color: ${props => props.isComplete ? '#999' : '#3498db'};
+    border: 2px dashed ${props => props.isComplete ? '#ccc' : '#3498db'};
+    border-radius: 12px;
     font-size: 16px;
     font-weight: 700;
     cursor: ${props => props.isComplete ? 'not-allowed' : 'pointer'};
@@ -141,34 +160,43 @@ const AddPlaceButton = styled.button<{ isComplete?: boolean }>`
     pointer-events: ${props => props.isComplete ? 'none' : 'auto'};
     
     &:hover {
-        background: ${props => props.isComplete ? '#e0e0e0' : '#e6f0ff'};
+        background: ${props => props.isComplete ? '#e0e0e0' : 'rgba(52, 152, 219, 0.2)'};
+        transform: translateY(-2px);
     }
 `;
 
 // 완료 버튼 스타일 컴포넌트
 const CompleteButton = styled.button<{ isComplete?: boolean }>`
     display: block;
-    width: calc(100% - 40px);
-    padding: 12px;
-    background: ${props => props.isComplete ? '#888' : '#0066cc'};
+    width: calc(100% - 50px);
+    padding: 15px;
+    background: ${props => props.isComplete ? '#888' : '#3498db'};
     color: #fff;
     border: none;
-    border-radius: 25px;
+    border-radius: 30px;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     cursor: ${props => props.isComplete ? 'default' : 'pointer'};
-    transition: background 0.3s;
+    transition: all 0.3s;
     position: absolute;
-    left: 20px;
+    left: 25px;
     align-self: center;
-    bottom: 20px;
+    bottom: 25px;
+    box-shadow: ${props => props.isComplete 
+        ? '0 4px 10px rgba(0, 0, 0, 0.1)' 
+        : '0 6px 15px rgba(52, 152, 219, 0.2)'};
     
     &:hover {
-        background: ${props => props.isComplete ? '#888' : '#0055aa'};
+        background: ${props => props.isComplete ? '#888' : '#2980b9'};
+        box-shadow: ${props => props.isComplete 
+            ? '0 4px 10px rgba(0, 0, 0, 0.1)' 
+            : '0 8px 20px rgba(52, 152, 219, 0.3)'};
     }
     
     &:disabled {
         background: #ccc;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         cursor: not-allowed;
     }
 `;
@@ -176,24 +204,27 @@ const CompleteButton = styled.button<{ isComplete?: boolean }>`
 // 다시 선택하기 버튼 스타일 컴포넌트
 const ResetButton = styled.button`
     display: block;
-    width: calc(100% - 40px);
-    padding: 8px;
-    background: #ff6b6b;
+    width: calc(100% - 50px);
+    padding: 12px 20px;
+    background: #e74c3c;
     color: #fff;
     border: none;
-    border-radius: 25px;
+    border-radius: 30px;
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s;
     position: absolute;
-    left: 20px;
+    left: 25px;
     top: 50%;
     transform: translateY(-50%);
-    padding: 12px 20px;
+    box-shadow: 0 6px 15px rgba(231, 76, 60, 0.2);
     
     &:hover {
-        background: #ff5252;
+        background: #c0392b;
+        box-shadow: 0 8px 20px rgba(231, 76, 60, 0.3);
+        transform: translateY(calc(-50% - 2px));
     }
 `;
 
@@ -212,6 +243,7 @@ interface SelectionSidebarProps {
     onShowSearch: () => void;
     onComplete: () => void;
     onReset: () => void;
+    showAddButton?: boolean;
 }
 
 const SelectionSidebar: React.FC<SelectionSidebarProps> = ({
@@ -223,7 +255,8 @@ const SelectionSidebar: React.FC<SelectionSidebarProps> = ({
     onDelete,
     onShowSearch,
     onComplete,
-    onReset
+    onReset,
+    showAddButton
 }) => {
     const addButtonText = type === 'travel' ? '+ 여행지 추가하기' : '+ 음식점 추가하기';
     const completeButtonText = isComplete 
@@ -256,13 +289,15 @@ const SelectionSidebar: React.FC<SelectionSidebarProps> = ({
                         </DeleteButton>
                     </SelectedItem>
                 ))}
-                <AddPlaceButton 
-                    isComplete={isComplete}
-                    onClick={onShowSearch}
-                    disabled={isComplete}
-                >
-                    {addButtonText}
-                </AddPlaceButton>
+                {showAddButton !== false && (
+                    <AddPlaceButton 
+                        isComplete={isComplete}
+                        onClick={onShowSearch}
+                        disabled={isComplete}
+                    >
+                        {addButtonText}
+                    </AddPlaceButton>
+                )}
             </SelectedItemsList>
 
             {isComplete && (

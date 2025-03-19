@@ -1,43 +1,82 @@
 import React, { useState } from 'react';
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import SelectionModal from '../../components/Modal/SelectionModal';
+import SelectionSidebar from '../../components/SelectionSidebar';
 
-// 애니메이션 keyframe 정의
-const fadeIn = keyframes`
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-`;
-
-const fadeOut = keyframes`
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-`;
-
-// 페이지 레이아웃 컴포넌트를 제거하고 ContentWrapper를 중앙 정렬로 수정
+// 페이지 레이아웃 컴포넌트를 중앙 정렬로 수정
 const ContentWrapper = styled.div`
-    width: 1400px;
+    width: 1500px;
     margin: auto;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
     height: auto;
     padding: 1rem 0;
     
     @media (max-width: 1440px) {
-        width: 90%;
+        width: 70%;
     }
+`;
+
+// 상단 헤더 컴포넌트
+const PageHeader = styled.div`
+    width: 100%;
+    padding: 20px 30px;
+    text-align: center;
+    position: relative;
+    background: linear-gradient(135deg, #f8f9fa 0%, #f0f2f5 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    
+    &::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 120px;
+        height: 3px;
+        background: linear-gradient(90deg, #0066cc, #00a3ff);
+        border-radius: 2px;
+    }
+`;
+
+const HeaderTitle = styled.h2`
+    font-size: 20px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -0.5px;
+    
+    strong {
+        color: #0066cc;
+        font-weight: 700;
+        margin-right: 8px;
+        position: relative;
+        padding-bottom: 3px;
+        
+        &::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #0066cc, #00a3ff);
+            border-radius: 2px;
+        }
+    }
+`;
+
+const HeaderSubtitle = styled.p`
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    font-weight: 400;
+    opacity: 0.8;
+    letter-spacing: -0.3px;
 `;
 
 // 여행 목록 섹션 스타일 컴포넌트
@@ -45,6 +84,7 @@ const TravelSection = styled.div`
     display: flex;
     gap: 30px;
     width: 100%;
+    padding: 15px 0;
     
     @media (max-width: 992px) {
         flex-direction: column;
@@ -55,27 +95,16 @@ const TravelSection = styled.div`
 const TravelListContainer = styled.div`
     flex: 1;
     background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     display: flex;
     flex-direction: column;
     min-width: 70%;
-`;
-
-const TravelListHeader = styled.div`
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    background: #f8f8f8;
-    border-bottom: 2px solid #eee;
-    font-size: 18px;
+    transition: all 0.3s ease;
     
-    strong {
-        font-weight: 600;
-        font-size: 18px;
-        color: #333;
+    &:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
     }
 `;
 
@@ -126,14 +155,18 @@ const TravelGrid = styled.div`
 // 여행 카드 컴포넌트
 const TravelCard = styled.div`
     position: relative;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
     height: 295px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
     
     &:hover {
-        transform: scale(1.03);
+        transform: translateY(-5px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.25);
         cursor: pointer;
         
         img {
@@ -146,38 +179,60 @@ const TravelCardImage = styled.div`
     display: block;
     height: 180px;
     overflow: hidden;
+    position: relative;
+    
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 30px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.2), transparent);
+    }
     
     img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.3s;
+        transition: transform 0.5s ease;
     }
 `;
 
 const TravelCardContent = styled.div`
-    padding: 10px 0 0 16px;
+    padding: 15px 16px 0;
+    flex-grow: 1;
     
     strong {
         display: block;
         font-size: 18px;
         color: #333;
-        margin: 5px 0;
+        margin: 0 0 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     div {
         display: block;
         font-size: 14px;
         color: #666;
-        margin: 8px 0;
+        margin: 0 0 8px;
+        line-height: 1.4;
+        max-height: 40px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
     }
 `;
 
 const CardButtonWrapper = styled.div`
     display: flex;
-    gap: 15px;
-    padding: 2px 15px 15px;
-    justify-content: right;
+    justify-content: flex-end;
+    padding: 10px 13px 15px;
+    position: relative;
+    margin-top: auto;
 `;
 
 const SelectButton = styled.button`
@@ -190,142 +245,21 @@ const SelectButton = styled.button`
     font-size: 14px;
     font-weight: 500;
     text-align: center;
-    transition: all 0.3s;
+    transition: all 0.2s ease;
     cursor: pointer;
     border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-right: 5px;
     
     &:hover {
-        background: #e0e0e0;
-    }
-`;
-
-// 네비게이션 및 푸터 컴포넌트
-const TravelListFooter = styled.div`
-    display: flex;
-    justify-content: space-between;
-    padding: 20px;
-    border-top: 1px solid #eee;
-`;
-
-const NavButton = styled.button`
-    display: inline-block;
-    padding: 10px 20px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 600;
-    text-align: center;
-    transition: all 0.3s;
-    cursor: pointer;
-    background: none;
-    
-    &.before {
-        color: #333;
-        background: #fff;
-        
-        &:hover {
-            background: #f8f8f8;
-        }
+        background: #0066cc;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0, 102, 204, 0.3);
     }
     
-    &.next {
-        color: #fff;
-        background: #333;
-        border-color: #333;
-        
-        &:hover {
-            background: #444;
-        }
-    }
-`;
-
-// 사이드바 컴포넌트
-const SelectedTravelSidebar = styled.div`
-    width: 300px;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    position: relative;
-    padding-bottom: 80px; /* 저장 버튼 공간 확보 */
-    
-    @media (max-width: 992px) {
-        width: 100%;
-    }
-`;
-
-const SidebarTitle = styled.strong`
-    display: block;
-    text-align: center;
-    center
-    font-size: 16px;
-    font-weight: 600;
-    padding: 10px 0;
-    margin-bottom: 3px;
-    color: #333;
-`;
-
-const SelectedTravelList = styled.div`
-    margin: 0 0 20px;
-    border-top: 2px solid #eee;
-    max-height: 450px;
-    overflow-y: auto;
-`;
-
-const SelectedTravelItem = styled.div<{ isDeleting?: boolean }>`
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #eee;
-    font-size: 15px;
-    color: #333;
-    font-weight: 500;
-    animation: ${props => props.isDeleting ? fadeOut : fadeIn} 0.5s ease-out forwards;
-`;
-
-const DeleteButton = styled.button`
-    display: inline-block;
-    padding: 6px 10px;
-    background: #fff;
-    color: #333;
-    border: 1px solid #ddd;
-    border-radius: 15px;
-    font-size: 13px;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.3s;
-    cursor: pointer;
-    
-    &:hover {
-        background: #f0f0f0;
-    }
-`;
-
-const SaveButton = styled.button`
-    display: block;
-    width: calc(100% - 40px);
-    padding: 12px;
-    background: #0066cc;
-    color: #fff;
-    border: none;
-    border-radius: 25px;
-    font-size: 16px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background 0.3s;
-    position: absolute;
-    bottom: 20px;
-    left: 20px;
-    
-    &:hover {
-        background: #0055aa;
-    }
-    
-    &:disabled {
-        background: #ccc;
-        cursor: not-allowed;
+    &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 4px rgba(0, 102, 204, 0.3);
     }
 `;
 
@@ -365,7 +299,6 @@ const SelectMain: React.FC<SelectMainProps> = ({
     const [deletingId, setDeletingId] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
     const [selectedTravelItem, setSelectedTravelItem] = useState<TravelItem | null>(null);
-    const [isSaving, setIsSaving] = useState<boolean>(false);
 
     // 삭제 버튼 클릭 시 실행되는 함수
     const handleDelete = (id: number, e?: React.MouseEvent) => {
@@ -382,11 +315,7 @@ const SelectMain: React.FC<SelectMainProps> = ({
 
     // 저장 버튼 클릭 시 실행되는 함수
     const handleSave = () => {
-        setIsSaving(true);
         onSave();
-        setTimeout(() => {
-            setIsSaving(false);
-        }, 2000);
     };
 
     // 여행 카드 클릭 시 실행되는 함수
@@ -414,20 +343,17 @@ const SelectMain: React.FC<SelectMainProps> = ({
         onSelectItem(id);
     };
 
-    const handleNavigation = (direction: string, e: React.MouseEvent) => {
-        e.preventDefault();
-        console.log(`Navigate ${direction}`);
-        // 여기에 네비게이션 로직 추가
-    };
-
     return (
         <ContentWrapper>
             <TravelSection>
                 <TravelListContainer>
-                    <TravelListHeader>
-                        <strong>{userName}</strong>{headerTitle}
-                    </TravelListHeader>
-
+                    <PageHeader>
+                        <HeaderTitle>
+                            <strong>{userName}</strong> {headerTitle}
+                        </HeaderTitle>
+                        <HeaderSubtitle>원하시는 여행지를 선택해 주세요</HeaderSubtitle>
+                    </PageHeader>
+                    
                     <TravelGrid>
                         {items.map((item) => (
                             <TravelCard 
@@ -463,59 +389,20 @@ const SelectMain: React.FC<SelectMainProps> = ({
                             </TravelCard>
                         ))}
                     </TravelGrid>
-
-                    <TravelListFooter>
-                        <NavButton 
-                            className="before"
-                            onClick={(e) => handleNavigation('previous', e)}
-                            aria-label="이전 페이지로 이동"
-                        >
-                            이전
-                        </NavButton>
-                        <NavButton 
-                            className="next"
-                            onClick={(e) => handleNavigation('next', e)}
-                            aria-label="다음 페이지로 이동"
-                        >
-                            다음
-                        </NavButton>
-                    </TravelListFooter>
                 </TravelListContainer>
 
-                <SelectedTravelSidebar>
-                    <SidebarTitle>{sidebarTitle}</SidebarTitle>
-
-                    <SelectedTravelList>
-                        {selectedItems.length > 0 ? (
-                            selectedItems.map((item) => (
-                                <SelectedTravelItem 
-                                    key={item.id} 
-                                    isDeleting={deletingId === item.id}
-                                >
-                                    {item.title}
-                                    <DeleteButton 
-                                        onClick={(e) => handleDelete(item.id, e)}
-                                        aria-label={`${item.title} 삭제하기`}
-                                    >
-                                        삭제
-                                    </DeleteButton>
-                                </SelectedTravelItem>
-                            ))
-                        ) : (
-                            <div style={{ padding: '20px 0', textAlign: 'center', color: '#999' }}>
-                                선택한 여행지가 없습니다.
-                            </div>
-                        )}
-                    </SelectedTravelList>
-
-                    <SaveButton 
-                        onClick={handleSave}
-                        disabled={selectedItems.length === 0}
-                        aria-label="선택한 여행지 저장하기"
-                    >
-                        {isSaving ? '저장중 ...' : '저장하기'}
-                    </SaveButton>
-                </SelectedTravelSidebar>
+                <SelectionSidebar 
+                    type="travel"
+                    title={sidebarTitle}
+                    items={selectedItems}
+                    isComplete={false}
+                    deletingItemId={deletingId}
+                    onDelete={handleDelete}
+                    onShowSearch={() => {}}
+                    onComplete={handleSave}
+                    onReset={() => {}}
+                    showAddButton={false}
+                />
             </TravelSection>
 
             {selectedTravelItem && (

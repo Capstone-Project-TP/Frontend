@@ -24,7 +24,7 @@ const fadeOut = keyframes`
     }
 `;
 
-// 슬라이드 인 애니메이션 추가
+// 슬라이드 인 애니메이션 수정
 const slideInLeft = keyframes`
     from {
         opacity: 0;
@@ -47,7 +47,7 @@ const slideInRight = keyframes`
     }
 `;
 
-// 슬라이드 아웃 애니메이션 추가
+// 슬라이드 아웃 애니메이션 수정
 const slideOutLeft = keyframes`
     from {
         opacity: 1;
@@ -74,49 +74,55 @@ const slideOutRight = keyframes`
 const SearchContainer = styled.div<{ isClosing?: boolean }>`
     width: 400px;
     min-height: 600px;
-    height: calc(100vh - 300px);
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    padding: 20px;
-    padding-right: 15px;
+    max-height: 80vh;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    padding: 25px;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    position: absolute;
-    z-index: 10;
+    position: fixed;
+    z-index: 1000;
+    border: 1px solid #f0f0f0;
+    top: 100px;
+    transform: none;
     
     @media (max-width: 992px) {
-        width: 100%;
-        height: 600px;
+        width: 90%;
+        max-height: 70vh;
+        left: 5%;
         margin-bottom: 20px;
     }
 `;
 
 // 여행지 검색 컨테이너 위치 조정
 const TravelSearchContainer = styled(SearchContainer)<{ isClosing?: boolean }>`
-    left: calc(300px - 380px); // 여행지 사이드바 너비 + 간격
+    left: 35px;
+    top: 160px;
     animation: ${props => props.isClosing ? slideOutLeft : slideInLeft} 0.4s ease-out forwards;
     
     @media (max-width: 992px) {
+        left: 5%;
+        top: 80px;
+        transform: none;
         animation: ${props => props.isClosing ? fadeOut : fadeIn} 0.4s ease-out forwards;
     }
 `;
 
 // 음식점 검색 컨테이너 위치 조정
 const RestaurantSearchContainer = styled(SearchContainer)<{ isClosing?: boolean }>`
-    right: calc(300px - 380px); // 음식점 사이드바 너비 + 간격
+    right: 35px;
+    left: auto;
+    top: 160px;
     animation: ${props => props.isClosing ? slideOutRight : slideInRight} 0.4s ease-out forwards;
     
     @media (max-width: 992px) {
-        right: 0;
-        width: 100%;
-        height: 600px;
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1000;
+        width: 80%;
+        right: auto;
+        left: 5%;
+        top: 120px;
+        transform: none;
         animation: ${props => props.isClosing ? fadeOut : fadeIn} 0.4s ease-out forwards;
     }
 `;
@@ -125,16 +131,18 @@ const RestaurantSearchContainer = styled(SearchContainer)<{ isClosing?: boolean 
 const SearchTitle = styled.strong`
     display: block;
     text-align: center;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 10px 0;
+    font-size: 18px;
+    font-weight: 700;
+    padding: 15px 0;
     margin-bottom: 10px;
-    color: #333;
+    color: #2c3e50;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #3498db;
 `;
 
 // 검색 입력 폼 스타일 컴포넌트
 const SearchForm = styled.div`
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     display: flex;
     gap: 10px;
     align-items: center;
@@ -143,34 +151,38 @@ const SearchForm = styled.div`
 // 검색 입력창 스타일 컴포넌트
 const SearchInput = styled.input`
     flex: 1;
-    padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    font-size: 14px;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    font-size: 15px;
     outline: none;
-    transition: border-color 0.3s;
+    transition: all 0.3s;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     
     &:focus {
-        border-color: #0066cc;
+        border-color: #3498db;
+        box-shadow: 0 4px 8px rgba(52, 152, 219, 0.1);
     }
 `;
 
 // 검색 버튼 스타일 컴포넌트
 const SearchButton = styled.button`
-    padding: 8px 16px;
-    background: #0066cc;
+    padding: 12px 20px;
+    background: #3498db;
     color: #fff;
     border: none;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: 500;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.3s;
+    transition: all 0.3s;
     white-space: nowrap;
+    box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
     
     &:hover {
-        background: #0055aa;
+        background: #2980b9;
+        box-shadow: 0 6px 12px rgba(52, 152, 219, 0.3);
     }
 `;
 
@@ -192,18 +204,21 @@ const SearchResultItem = styled.div`
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px;
-    border-bottom: 1px solid #eee;
+    padding: 14px 16px;
+    margin: 10px 0;
+    border-radius: 12px;
     font-size: 15px;
-    color: #333;
-    transition: background-color 0.2s;
+    color: #2c3e50;
+    background: #ffffff;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     
     &:hover {
-        background-color: #f8f9fa;
-    }
-    
-    &:first-child {
-        border-top: 1px solid #eee;
+        background: #fafafa;
+        border-color: #e8e8e8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
     }
 `;
 
@@ -214,31 +229,40 @@ const PlaceInfo = styled.div`
 
 // 장소 이름 스타일 컴포넌트
 const PlaceName = styled.div`
-    font-weight: 500;
-    margin-bottom: 4px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: #2c3e50;
 `;
 
 // 장소 주소 스타일 컴포넌트
 const PlaceAddress = styled.div`
-    font-size: 12px;
-    color: #777;
+    font-size: 13px;
+    color: #7f8c8d;
 `;
 
 // 추가 버튼 스타일 컴포넌트
 const AddButton = styled.button<{ isComplete?: boolean }>`
-    padding: 6px 12px;
-    background: ${props => props.isComplete ? '#ccc' : '#0066cc'};
-    color: #fff;
-    border: none;
-    border-radius: 15px;
-    font-size: 13px;
-    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    background: ${props => props.isComplete ? '#e0e0e0' : '#f0f0f0'};
+    color: ${props => props.isComplete ? '#999' : '#333'};
+    border: 1px solid ${props => props.isComplete ? '#d0d0d0' : '#dddddd'};
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
     cursor: ${props => props.isComplete ? 'not-allowed' : 'pointer'};
-    transition: background 0.3s;
-    margin-left: 10px;
+    transition: all 0.3s;
+    margin-left: 12px;
     
     &:hover {
-        background: ${props => props.isComplete ? '#ccc' : '#0055aa'};
+        background: ${props => props.isComplete ? '#e0e0e0' : '#3498db'};
+        color: ${props => props.isComplete ? '#999' : '#fff'};
+        border-color: ${props => props.isComplete ? '#d0d0d0' : '#3498db'};
+        box-shadow: ${props => props.isComplete
+            ? '0 2px 4px rgba(0, 0, 0, 0.05)'
+            : '0 6px 12px rgba(52, 152, 219, 0.3)'};
     }
 `;
 
