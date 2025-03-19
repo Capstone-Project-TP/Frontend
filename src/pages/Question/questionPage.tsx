@@ -768,6 +768,7 @@ const getQuestion = (userName: string) => [
     "잠시만 기다려주세요!"
 ]
 
+// 채팅 메시지 인터페이스
 interface Message {
     content: string;
     timestamp: string;
@@ -775,13 +776,16 @@ interface Message {
 }
 
 const QuestionPage: React.FC = () => {
+    // 상태 관리
     const question = getQuestion("김수연");
-    const [chatHistory, setChatHistory] = useState<Message[]>([]);
-    const [defaultQuestions, setDefaultQuestions] = useState<Message[]>([]);
+    const [chatHistory, setChatHistory] = useState<Message[]>([]); // 채팅 기록
+    const [defaultQuestions, setDefaultQuestions] = useState<Message[]>([]); // 기본 질문들
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
     const [inputValue, setInputValue] = useState("");
     const [isQuestionInProgress, setIsQuestionInProgress] = useState(true);
     const [isComplete, setIsComplete] = useState(false);
+    
+    // 사용자 응답 데이터 관리
     const [userAnswers, setUserAnswers] = useState({
         destination: "부산",
         dateRange: {
@@ -793,14 +797,20 @@ const QuestionPage: React.FC = () => {
         foodRestrictions: "",
         additionalRequests: ""
     });
+
+    // 임시 날짜 범위 저장
     const [tempDateRange, setTempDateRange] = useState({
         start: "",
         end: ""
     });
-    const inputRef = React.useRef<HTMLInputElement>(null);
-    const messageEndRef = React.useRef<HTMLDivElement>(null);
+
+    // 보여질 섹션 관리
     const [visibleSections, setVisibleSections] = useState<string[]>(["destination"]);
 
+    const inputRef = React.useRef<HTMLInputElement>(null);
+    const messageEndRef = React.useRef<HTMLDivElement>(null);
+
+    // 채팅창 자동 스크롤
     const scrollToBottom = () => {
         if (messageEndRef.current) {
             messageEndRef.current.scrollIntoView({ 
@@ -929,23 +939,26 @@ const QuestionPage: React.FC = () => {
 
     // 사용자 응답에 따라 섹션 표시
     const handleUserResponse = (response: string, currentQuestion: string) => {
-        if (currentQuestion.includes("여행기간은 언제인가요") && response === '네') {
-            setVisibleSections(prev => [...prev, "dateRange"]);
-        } else if (currentQuestion.includes("활동을 선호하시나요")) {
-            setVisibleSections(prev => [...prev, "activities"]);
-            setUserAnswers(prev => ({ ...prev, activities: response }));
-        } else if (currentQuestion.includes("음식을 선호하시나요")) {
-            setVisibleSections(prev => [...prev, "foodPreferences"]);
-            setUserAnswers(prev => ({ ...prev, foodPreferences: response }));
-        } else if (currentQuestion.includes("못먹는 종류의 음식이 있으신가요")) {
-            setVisibleSections(prev => [...prev, "foodRestrictions"]);
-            setUserAnswers(prev => ({ ...prev, foodRestrictions: response }));
-        } else if (currentQuestion.includes("추가적으로 반영하고 싶은 내용이 있나요")) {
-            setVisibleSections(prev => [...prev, "additionalRequests"]);
-            setUserAnswers(prev => ({ ...prev, additionalRequests: response }));
-        }
+        setTimeout(() => {
+            if (currentQuestion.includes("여행기간은 언제인가요") && response === '네') {
+                setVisibleSections(prev => [...prev, "dateRange"]);
+            } else if (currentQuestion.includes("활동을 선호하시나요")) {
+                setVisibleSections(prev => [...prev, "activities"]);
+                setUserAnswers(prev => ({ ...prev, activities: response }));
+            } else if (currentQuestion.includes("음식을 선호하시나요")) {
+                setVisibleSections(prev => [...prev, "foodPreferences"]);
+                setUserAnswers(prev => ({ ...prev, foodPreferences: response }));
+            } else if (currentQuestion.includes("못먹는 종류의 음식이 있으신가요")) {
+                setVisibleSections(prev => [...prev, "foodRestrictions"]);
+                setUserAnswers(prev => ({ ...prev, foodRestrictions: response }));
+            } else if (currentQuestion.includes("추가적으로 반영하고 싶은 내용이 있나요")) {
+                setVisibleSections(prev => [...prev, "additionalRequests"]);
+                setUserAnswers(prev => ({ ...prev, additionalRequests: response }));
+            }
+        }, 500); // 500ms 지연으로 자연스러운 업데이트
     };
 
+    // 메시지 전송 처리
     const handleSendMessage = () => {
         if (inputValue.trim() !== "" && !isQuestionInProgress && !isComplete) {
             setIsQuestionInProgress(true);
