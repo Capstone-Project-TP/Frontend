@@ -72,28 +72,43 @@ const MessagesChat = styled.div`
     padding: 24px;
     display: flex;
     flex-direction: column;
-    height: calc(100% - 80px); /* FooterChat 높이 고려 */
+    height: calc(100% - 80px);
     
     @media (max-width: 768px) {
         padding: 16px;
     }
 
+    /* 스크롤바 기본 스타일 */
     &::-webkit-scrollbar {
         width: 6px;
+        background: transparent;
     }
 
     &::-webkit-scrollbar-track {
-        background: #f8f8f8;
+        background: transparent;
         border-radius: 4px;
+        margin: 4px;
     }
 
     &::-webkit-scrollbar-thumb {
-        background: #ddd;
+        background: transparent;
         border-radius: 4px;
+        transition: background-color 0.3s ease;
     }
 
-    &::-webkit-scrollbar-thumb:hover {
-        background: #ccc;
+    /* 호버 시 스크롤바 스타일 */
+    &:hover {
+        &::-webkit-scrollbar-track {
+            background: #f8f8f8;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #ddd;
+
+            &:hover {
+                background: #ccc;
+            }
+        }
     }
 `;
 
@@ -656,26 +671,41 @@ const ResponseList = styled.ul`
     flex-direction: column;
     padding: 0;
     margin: 30px;
-    height: 400px;
-    overflow-y: hidden;
+    height: calc(100% - 60px);
+    overflow-y: auto;
     scroll-behavior: smooth;
     
+    /* 스크롤바 기본 스타일 */
     &::-webkit-scrollbar {
         width: 6px;
+        background: transparent;
     }
 
     &::-webkit-scrollbar-track {
-        background: #f8f8f8;
+        background: transparent;
         border-radius: 4px;
+        margin: 4px;
     }
 
     &::-webkit-scrollbar-thumb {
-        background: #ddd;
+        background: transparent;
         border-radius: 4px;
+        transition: background-color 0.3s ease;
     }
 
-    &::-webkit-scrollbar-thumb:hover {
-        background: #ccc;
+    /* 호버 시 스크롤바 스타일 */
+    &:hover {
+        &::-webkit-scrollbar-track {
+            background: #f8f8f8;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: #ddd;
+
+            &:hover {
+                background: #ccc;
+            }
+        }
     }
     
     li {
@@ -683,6 +713,7 @@ const ResponseList = styled.ul`
         transform: translateY(20px);
         transition: all 0.3s ease;
         margin-bottom: 20px;
+        width: 100%;
 
         &:last-child {
             margin-bottom: 0;
@@ -701,14 +732,6 @@ const ResponseList = styled.ul`
             margin-bottom: 8px;
             padding-left: 4px;
         }
-    }
-
-    &.overflow {
-        overflow-y: scroll;
-    }
-
-    @media (max-width: 768px) {
-        height: 300px;
     }
 `;
 
@@ -810,6 +833,7 @@ interface Message {
 const QuestionPage: React.FC = () => {
     // 상태 관리
     const question = getQuestion("김수연");
+    const userName = "김수연";
     const [chatHistory, setChatHistory] = useState<Message[]>([]); // 채팅 기록
     const [defaultQuestions, setDefaultQuestions] = useState<Message[]>([]); // 기본 질문들
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
@@ -1149,57 +1173,46 @@ const QuestionPage: React.FC = () => {
         return currentMessage.isResponse !== previousMessage.isResponse;
     };
 
-    // 스크롤 상태 체크
+    // 캘린더 표시 시 스크롤 처리
     useEffect(() => {
-        const checkOverflow = () => {
+        const isCalendarMessage = chatHistory.some(msg => msg.content === "calendar");
+        if (isCalendarMessage) {
+            setTimeout(() => {
+                if (messageEndRef.current) {
+                    messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+                }
+            }, 100);
+        }
+    }, [chatHistory]);
+
+    // 응답 섹션 스크롤 처리 개선
+    useEffect(() => {
+        const scrollToBottom = () => {
             if (responseListRef.current) {
                 const list = responseListRef.current;
-                const contentHeight = Array.from(list.children).reduce((total, child) => total + child.clientHeight, 0);
-                const containerHeight = list.clientHeight;
+                const lastChild = list.lastElementChild;
                 
-                if (contentHeight > containerHeight) {
-                    list.classList.add('overflow');
-                } else {
-                    list.classList.remove('overflow');
+                if (lastChild) {
+                    const listHeight = list.clientHeight;
+                    const contentHeight = list.scrollHeight;
+                    const scrollPosition = contentHeight - listHeight;
+                    
+                    if (scrollPosition > 0) {
+                        list.scrollTo({
+                            top: scrollPosition,
+                            behavior: 'smooth'
+                        });
+                    }
                 }
             }
         };
 
-        const scrollToBottom = () => {
-            if (responseListRef.current && responseListRef.current.classList.contains('overflow')) {
-                const list = responseListRef.current;
-                list.scrollTo({
-                    top: list.scrollHeight,
-                    behavior: 'smooth'
-                });
-            }
-        };
-
-        // 초기 체크
-        checkOverflow();
-        
-        // ResizeObserver를 사용하여 크기 변화 감지
-        const observer = new ResizeObserver(() => {
-            checkOverflow();
-            // 약간의 지연 후 스크롤 적용 (애니메이션 완료 후)
-            setTimeout(scrollToBottom, 100);
-        });
-
-        if (responseListRef.current) {
-            observer.observe(responseListRef.current);
-        }
-
-        // 섹션이 추가될 때마다 체크
+        // 섹션이 추가될 때마다 스크롤
         const timer = setTimeout(() => {
-            checkOverflow();
-            // 애니메이션 완료 후 스크롤
-            setTimeout(scrollToBottom, 100);
-        }, 100);
+            scrollToBottom();
+        }, 300); // 애니메이션 완료를 위해 시간 증가
 
         return () => {
-            if (responseListRef.current) {
-                observer.unobserve(responseListRef.current);
-            }
             clearTimeout(timer);
         };
     }, [visibleSections]);
@@ -1210,7 +1223,7 @@ const QuestionPage: React.FC = () => {
         <Wrapper>
                 {isComplete && (
                     <LoadingContainer>
-                        <LoadingSpinner />
+                        <LoadingSpinner message={`${userName}님의 성향에 맞는 추천 여행지를 준비하고 있습니다. 잠시만 기다려주세요.`}/>
                     </LoadingContainer>
                 )}
                 <GuideWrap>
